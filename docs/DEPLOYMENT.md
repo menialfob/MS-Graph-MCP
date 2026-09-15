@@ -1,11 +1,7 @@
-# Deployment: remote hosting over Streamable HTTP
+# Running and porting the server
 
-This server is designed to be **hosted remotely and shared by many users**.
-stdio exists for local development and desktop clients; it is not the target.
-
-That distinction is not cosmetic. A stdio server is one process per user, so
-"the signed-in user" can be process state. A hosted server is one process
-serving many users concurrently, and the same assumption becomes a data leak.
+The server is hosted remotely over Streamable HTTP and shared by many users,
+acting as an OAuth 2.1 resource server. That is the only way it runs.
 
 ```bash
 python -m graph_mcp.http \
@@ -16,42 +12,76 @@ python -m graph_mcp.http \
   --required-scope Graph.Query
 ```
 
-## Every request carries its own identity
+Without `--resource-url` it starts unauthenticated against the fixture tenant,
+which is useful for development and must never be exposed beyond localhost.
 
-Nothing about a caller is cached on the server. Each request resolves a
-`Caller` (subject, scopes, token) from its verified access token, and that
-caller is threaded explicitly through to the Graph transport:
+## Tools
+
+| Tool | Annotations | Purpose |
+|---|---|---|
+| `graph_search_operations` | readOnly | Natural-language intent → ranked candidate operations |
+| `graph_describe_operation` | readOnly | Parameters, body type, permissions, gotchas |
+| `graph_describe_type` | readOnly | Entity properties and enums, from CSDL |
+| `graph_get` | readOnly, idempotent, openWorld | Execute a read |
+| `graph_next_page` | readOnly, idempotent, openWorld | Continue a paged read |
+| `graph_write` | destructive, openWorld | Execute a gated write |
+| `graph_whoami` | readOnly, idempotent | Identity, granted scopes, server capabilities |
+
+Only tools that reach Graph are `openWorld`; retrieval and schema lookups are
+served from local build artifacts.
+
+The intended flow is search → describe → execute, but `graph_get` accepts a raw
+path, so a model that already knows `/me/messages` skips the retrieval
+round-trip. The path is validated either way.
+
+## Porting: the transport seam
+
+Everything except this one protocol is transport-agnostic — retrieval, route
+validation, OData construction, shaping, paging, write gating, error
+translation:
 
 ```python
-TransportFactory = Callable[[Caller], GraphTransport]
+class GraphTransport(Protocol):
+    async def send(self, request: GraphRequest) -> GraphResponse: ...
+    async def identity(self) -> dict[str, Any]: ...
+
+TransportFactory = Callable[[Caller], GraphTransport]   # what you provide
 ```
 
-`Runtime` holds only what is shared and read-only — the retrieval index, route
-table, CSDL schema, shaping and write policy. It is loaded once and never
-mutated per request.
+The factory receives the authenticated `Caller` for **that request**. This is
+how each user's own token reaches Graph; returning one shared transport would
+make every caller act as the same user.
 
-Three concrete isolation guarantees, each with a test that fails without it
-(`tests/test_multiuser.py`):
+```python
+from graph_mcp.graph.transport import HttpGraphTransport
+from graph_mcp.runtime import build_runtime
 
-| Guarantee | Without it |
-|---|---|
-| Pagination cursors are owned by a subject | Any caller can resume another caller's query and read their data |
-| Identity and scopes resolved per request | The first caller's scopes are reported to everyone |
-| Confirm tokens bound to the caller | A write plan approved by one user confirms the same request from another |
+def transport_factory(caller):
+    async def token_provider() -> str:
+        # Exchange the caller's token for a Graph token (on-behalf-of), or pass
+        # it through if the audience is already Graph.
+        return await your_identity_layer.graph_token_for(caller.token)
 
-A cursor belonging to someone else is reported exactly like one that never
-existed — the error must not confirm that a valid cursor is out there.
+    return HttpGraphTransport(token_provider)
+
+runtime = build_runtime(transport_factory=transport_factory)
+```
+
+`HttpGraphTransport` already implements the HTTP side: retry honouring
+`Retry-After`, jittered backoff, JSON error handling. It has never run against
+a real tenant, so treat its error paths as unverified.
+
+Populate `identity()["scopes"]` from the token's `scp` claim — it drives
+`caller_has_scope` in search results and the missing-scope guidance on a 403.
 
 ## Authentication
 
-The server is an OAuth 2.1 **resource server**. It does not issue tokens and
-never sees a credential; it validates the token that arrives and acts as that
-user against Graph.
+The server validates tokens; it never issues them or handles a credential.
 
-Passing `--resource-url` enables this and makes the server publish RFC 9728
-protected-resource metadata, so clients can discover where to authenticate.
-`validate_token_resource` is on, so a token minted for a different API cannot
-be replayed here.
+`--resource-url` enables resource-server mode and publishes RFC 9728
+protected-resource metadata so clients can discover where to authenticate.
+`validate_token_resource` is on, so a token minted for a different API cannot be
+replayed here.
 
 **You must supply a token verifier.** There is deliberately no default:
 
@@ -74,33 +104,45 @@ class EntraTokenVerifier:                       # implements mcp TokenVerifier
         )
 ```
 
-Starting with `--resource-url` and no verifier is a hard failure rather than a
-permissive fallback: accepting unverified bearer tokens would let any caller
-act as any user, which defeats every guarantee above.
+Starting with `--resource-url` and no verifier is a hard failure, not a
+permissive fallback: accepting unverified bearer tokens would let any caller act
+as any user.
 
-`Caller.subject` prefers the `oid` claim over the OAuth `sub`, because Entra's
-`sub` is pairwise per application while `oid` is stable for the user in the
-tenant — and cursor ownership depends on that stability.
+`Caller.subject` prefers `oid` over the OAuth `sub`, because Entra's `sub` is
+pairwise per application while `oid` is stable for the user in the tenant — and
+cursor ownership depends on that stability.
 
-Populate `scopes` from `scp`: it drives `caller_has_scope` in search results and
-the missing-scope guidance on a 403.
+## Multi-user isolation
+
+One process serves every user, so nothing about a caller is cached. Each
+request resolves a `Caller` (subject, scopes, token) from its verified token and
+threads it through to the transport. `Runtime` holds only shared read-only
+state: the retrieval index, route table, CSDL schema and policies.
+
+Three guarantees, each with a test that fails without it
+(`tests/test_multiuser.py`):
+
+| Guarantee | Without it |
+|---|---|
+| Cursors owned by a subject | Any caller resumes another caller's query and reads their data |
+| Identity and scopes per request | The first caller's scopes are reported to everyone |
+| Confirm tokens bound to the caller | A plan approved by one user confirms the same request from another |
+
+A cursor belonging to someone else is reported exactly like one that never
+existed — the error must not confirm a valid cursor is out there.
 
 ## Transport security
 
-The MCP specification requires HTTP servers to validate `Origin` to defeat
-DNS-rebinding attacks from a browser on the user's machine. Name your public
-hostnames explicitly in production:
+The specification requires HTTP servers to validate `Origin` against
+DNS-rebinding attacks. Name your real hosts:
 
 ```bash
 --allowed-host graph-mcp.example.com --allowed-origin https://client.example.com
 ```
 
-The `Host` header carries the port, so `graph-mcp.example.com:443` and
-`graph-mcp.example.com` are different strings; the local defaults generate both
-forms, but production entries should be exact. A mismatch returns
-`421 Misdirected Request`.
-
-Terminate TLS in front of the server.
+The `Host` header carries the port, so `example.com:443` and `example.com` are
+different strings. A mismatch returns `421 Misdirected Request`. Terminate TLS
+in front of the server.
 
 ## Scaling and session state
 
@@ -109,40 +151,31 @@ Terminate TLS in front of the server.
 | Sessioned (default) | Work | Needs sticky sessions, or a shared cursor store |
 | `--stateless` | Unavailable | Any replica serves any request |
 
-Cursors live in this process (`CursorStore`), so across replicas a caller can
-land on a replica that has never seen their cursor. Options, in order of
-preference:
+Cursors live in-process, so across replicas a caller can land on one that has
+never seen their cursor. In order of preference:
 
-1. **Sticky sessions** on the load balancer, keyed by `Mcp-Session-Id`. Simplest,
-   and what the default mode assumes.
-2. **Shared cursor store.** `CursorStore` has a deliberately tiny interface
-   (`put`/`get`) — back it with Redis and keep the ownership check.
-3. **`--stateless`.** Horizontal scaling with no affinity, at the cost of
-   pagination; callers must use `$top` and `$filter` instead.
+1. **Sticky sessions** keyed by `Mcp-Session-Id`. What the default assumes.
+2. **Shared cursor store.** `CursorStore` is two methods (`put`/`get`) — back it
+   with Redis and keep the ownership check.
+3. **`--stateless`.** No affinity, at the cost of pagination; callers use
+   `$top` and `$filter` instead.
 
-Write confirm tokens are HMAC'd with a per-process key unless
-`GRAPH_MCP_CONFIRM_SECRET` is set. **Set it** in any multi-replica deployment,
-or a plan issued by one replica will be rejected by another.
+Set `GRAPH_MCP_CONFIRM_SECRET` in any multi-replica deployment, or a write plan
+issued by one replica is rejected by another.
 
-The retrieval index is a read-only build artifact, so replicas share it
-happily. Ship it in the image or mount it; do not rebuild per replica.
-
-## Startup
-
-`Runtime.warmup()` loads the embedding model before traffic arrives; the HTTP
-entry point calls it. Without it the first search request pays a multi-second
-model load, and concurrent first requests all try to load it at once.
-
-Set `GRAPH_MCP_OFFLINE=1` so the model loads from the image's cache rather than
-reaching the model hub at startup.
-
-Expect ~1–2 GB RSS per replica: the embedding model dominates, the index is
-tens of MB.
+The retrieval index is a read-only build artifact; ship it in the image or
+mount it, and do not rebuild per replica. `Runtime.warmup()` loads the embedding
+model at startup so the first user does not pay for it. Expect ~1–2 GB RSS per
+replica, dominated by that model.
 
 ## Configuration
 
+Every flag has an environment equivalent, so nothing needs a command line in a
+container.
+
 | Variable | Purpose |
 |---|---|
+| `GRAPH_MCP_HOST` / `GRAPH_MCP_PORT` | Bind address (`--host` / `--port`) |
 | `GRAPH_MCP_RESOURCE_URL` | Public URL; enables OAuth resource-server mode |
 | `GRAPH_MCP_ISSUER_URL` | Identity provider issuer |
 | `GRAPH_MCP_TOKEN_VERIFIER` | `module:Class` implementing `TokenVerifier` |
@@ -150,25 +183,70 @@ tens of MB.
 | `GRAPH_MCP_INDEX` | Retrieval index directory |
 | `GRAPH_MCP_CONFIG` | Scope profiles, select defaults, write allowlist |
 | `GRAPH_MCP_METADATA` | CSDL for `graph_describe_type` |
+| `GRAPH_MCP_EMBEDDER` | `local` or `azure` |
 | `GRAPH_MCP_OFFLINE` | Load the embedding model from cache only |
 
-## Observability
+## Behaviour worth knowing
 
-Each tool result already carries the exact Graph request that was made
-(credentials stripped), which is the record that matters for audit. Server-side
-logs go to stderr — MCP's logging capability is deprecated as of protocol
-`2026-07-28` (SEP-2577).
+**Advanced queries are handled for you.** On directory resources, `$search`,
+`$count` and operators such as `endsWith` require both
+`ConsistencyLevel: eventual` and `$count=true`. Graph's 400 does not mention
+consistency level, so a model left alone retries the same broken request
+forever. `graph_get` detects the condition, adds both, and says so in `notes`.
 
-For tenant-side correlation, have your transport attach a `client-request-id`
-header and log it alongside `Caller.subject`; Microsoft Graph activity logs can
-then be joined to individual MCP calls.
+**Responses are shaped.** A default `$select` per entity type
+(`config/select_defaults.yaml`) when the caller gives none; heavy fields such as
+message bodies dropped unless selected; long strings and lists truncated. Every
+one is reported in `notes`, never silently.
 
-## Checklist before exposing this
+**Pagination uses opaque cursors.** `@odata.nextLink` is a long skiptoken URL
+that never reaches the model.
+
+**Writes are gated three ways** — allowlist, dry-run by default, and a confirm
+token bound to the exact request and caller. Disabled entirely unless
+`config/write_allowlist.yaml` sets `enabled: true`.
+
+**Unknown paths are refused with suggestions** rather than forwarded to Graph:
+
+```
+'/me/mesages' does not match any known Graph operation in this deployment's
+catalog. Closest known paths: /me/messages, /me/messages/{}, /me/messages/delta.
+```
+
+## Specification conformance
+
+Built against the `mcp` 2.x SDK (latest protocol `2026-07-28`), version
+negotiated with the client.
+
+- **Tool failures are results, not transport errors.** Every expected failure
+  returns `CallToolResult(isError: true)` with readable text, so the model can
+  correct itself. Only protocol faults become JSON-RPC errors.
+- **Structured output.** Every tool declares an `outputSchema` and returns
+  `structuredContent` alongside text.
+- **Annotations carry their real meaning**: `destructiveHint` only on
+  `graph_write`, `idempotentHint` only where repeating a call is safe.
+- **No deprecated capabilities.** MCP logging is deprecated as of `2026-07-28`
+  (SEP-2577), so diagnostics go to stderr. Each result already carries the exact
+  Graph request made, credentials stripped — the record that matters for audit.
+  For tenant-side correlation, attach a `client-request-id` header in your
+  transport and log it with `Caller.subject`.
+
+## Before exposing this
 
 - [ ] `--resource-url` set and a real `GRAPH_MCP_TOKEN_VERIFIER` wired
 - [ ] `--allowed-host` / `--allowed-origin` name your real hosts
 - [ ] TLS terminated in front
 - [ ] `GRAPH_MCP_CONFIRM_SECRET` set if more than one replica
 - [ ] Sticky sessions, a shared cursor store, or `--stateless`
-- [ ] Delegated scopes on the app registration reviewed (see [SCOPE.md](SCOPE.md))
+- [ ] Delegated scopes on the app registration reviewed ([SCOPE.md](SCOPE.md))
 - [ ] `config/write_allowlist.yaml` reviewed — writes are off unless enabled
+
+## Testing
+
+`tests/test_server.py` drives the server through a real `ClientSession` over
+in-memory streams, so initialize, tool listing, schema validation and `isError`
+semantics are covered. `tests/test_multiuser.py` covers isolation.
+
+```bash
+python -m pytest tests/ -q
+```

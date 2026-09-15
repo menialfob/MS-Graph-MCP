@@ -1,9 +1,7 @@
 """Isolation between callers sharing one server process.
 
-These are the tests that a remote, multi-tenant deployment lives or dies by.
-A stdio server is one process per user, so none of this can go wrong there --
-which is exactly why the bugs were present until the hosting model was made
-explicit.
+One process serves every user, so these are the tests this deployment lives or
+dies by. Each one failed before the caller was threaded through explicitly.
 """
 
 from __future__ import annotations

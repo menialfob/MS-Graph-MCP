@@ -12,10 +12,7 @@ dependencies = [
 ]
 
 [project.scripts]
-# Remote hosting over Streamable HTTP is the intended deployment.
-graph-mcp-http = "graph_mcp.http:main"
-# stdio, for local development and desktop clients.
-graph-mcp = "graph_mcp.server:main"
+graph-mcp = "graph_mcp.http:main"
 
 [project.optional-dependencies]
 # Local embeddings for reproducible builds and CI. Production can swap in

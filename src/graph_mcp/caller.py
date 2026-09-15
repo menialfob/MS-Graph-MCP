@@ -1,10 +1,9 @@
 """Per-request caller identity.
 
-A stdio server is one process per user, so "the signed-in user" can be process
-state. A remote HTTP server is one process serving many users concurrently, and
-the same assumption becomes a data leak: cached identity leaks the first
-caller's scopes to everyone, and an unowned pagination cursor lets any caller
-resume another caller's query.
+This server is one process serving many users concurrently, so "the signed-in
+user" can never be process state. Caching identity would leak the first
+caller's scopes to everyone, and an unowned pagination cursor would let any
+caller resume another caller's query.
 
 So identity is resolved per request and threaded explicitly through every call
 that touches Graph. Nothing about the caller is ever cached on the server.
@@ -32,9 +31,9 @@ class Caller:
         return {"subject": self.subject, "scopes": list(self.scopes)}
 
 
-# Used when the server runs without an auth layer: local development over
-# stdio, or the fixture transport. Never reachable when AuthSettings is
-# configured, because the SDK rejects unauthenticated requests first.
+# Used only when the server runs with no auth layer configured -- a
+# localhost-bound development server over fixtures. Never reachable once
+# AuthSettings is set, because unauthenticated requests are rejected first.
 LOCAL_CALLER = Caller(subject="local-dev", scopes=())
 
 

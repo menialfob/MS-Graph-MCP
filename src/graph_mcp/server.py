@@ -11,10 +11,11 @@ open-world. Structured output schemas are derived from the return types, so
 clients that understand structured content get typed results and clients that
 do not still get readable text.
 
-This server is built to be hosted remotely over Streamable HTTP, serving many
-users from one process. Every tool therefore resolves the calling user from the
-request's access token and threads it through to the transport; no identity,
-token or scope is ever cached on the server. See docs/DEPLOYMENT.md.
+This server is hosted remotely over Streamable HTTP, serving many users from
+one process. Every tool resolves the calling user from the request's access
+token and threads it through to the transport; no identity, token or scope is
+ever cached on the server. Run it with `python -m graph_mcp.http`; see
+docs/DEPLOYMENT.md.
 
 The server talks to Graph only through `GraphTransport`. It defaults to a
 fixture tenant, so it runs and is fully exercisable with no credentials.
@@ -254,8 +255,8 @@ def create_server(
     """Build the server.
 
     `auth_settings` and `token_verifier` are supplied by the HTTP entry point
-    (graph_mcp.http). Left unset, the server runs unauthenticated as a single
-    local developer, which is only appropriate for stdio or localhost.
+    (graph_mcp.http). Left unset, every request is attributed to one local
+    developer -- only appropriate for a localhost-bound development server.
     """
     rt = runtime or build_runtime()
 
@@ -619,17 +620,3 @@ def create_server(
         )
 
     return server
-
-
-def main() -> None:
-    """stdio entry point, for local development and desktop clients.
-
-    The intended production deployment is remote over Streamable HTTP; see
-    graph_mcp.http and docs/DEPLOYMENT.md.
-    """
-    logging.basicConfig(level=logging.INFO)
-    create_server().run()
-
-
-if __name__ == "__main__":
-    main()

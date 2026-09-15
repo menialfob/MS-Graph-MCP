@@ -7,7 +7,7 @@ it validates what arrives and acts on behalf of that user.
 
     python -m graph_mcp.http --host 0.0.0.0 --port 8000
 
-Three things this entry point sets up that stdio never needs:
+This entry point sets up three things:
 
 1. **Token verification.** A `TokenVerifier` turns a bearer token into a
    verified identity plus scopes. `AuthSettings.resource_server_url` makes the
@@ -23,6 +23,8 @@ Three things this entry point sets up that stdio never needs:
 Session state: pagination cursors live in this process, so run either with
 sticky sessions or with `--stateless`, which disables cursors rather than
 handing a caller another replica's results. See docs/DEPLOYMENT.md.
+
+This is the only way to run the server.
 """
 
 from __future__ import annotations
