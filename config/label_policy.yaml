@@ -1,0 +1,62 @@
+# Sensitivity-label gate: withhold content carrying a blocked Purview label.
+#
+# OFF BY DEFAULT. With `enabled: false` nothing in this file has any effect and
+# the server behaves exactly as it did before the gate existed. Turning it on
+# costs extra Graph calls per read -- see docs/SENSITIVITY-LABELS-BLOCKING.md
+# for the coverage gaps, which are real.
+#
+# This is a client-side gate, not a security boundary. The boundary is still
+# Entra consent (docs/SCOPE.md §3): it stops labeled content reaching a model's
+# context window, it does not stop a user who could already open the item.
+enabled: false
+
+# block    -- withhold matching items (enforcement)
+# annotate -- change nothing, but report what *would* be withheld. Run this
+#             first: it measures the blast radius on real traffic before
+#             anyone is locked out of their own mail.
+mode: block
+
+# Treat "could not determine the label" as "labeled". A 423 Locked file, an
+# unexpanded mail property, a failed lookup. Setting this false turns every
+# failure mode into a bypass, which makes the gate decorative -- but it is here
+# because a deployment may reasonably prefer availability while rolling out.
+fail_closed: true
+
+# Labels to block, by display name. Resolved to GUIDs at first use against
+# GET /security/dataSecurityAndGovernance/sensitivityLabels, so these must match
+# the tenant's label names exactly.
+#
+# Note "Personal" in Microsoft's default taxonomy means *non-business, personal
+# use* -- not "contains personal data". If the intent is GDPR-style PII, name
+# the label your tenant actually applies for it.
+blocked_labels:
+  - Personal information
+
+# Or pin GUIDs directly, skipping name resolution entirely. Useful when the
+# app registration lacks the scope to list label definitions.
+blocked_label_ids: []
+
+# Also withhold encryption-backed labeled content when the caller lacks the
+# EXTRACT usage right. This is what Microsoft 365 Copilot does, and it applies
+# regardless of whether the label appears in `blocked_labels` above. Costs one
+# computeRightsAndInheritance call per protected label encountered.
+require_extract_right: true
+
+# Files need one extractSensitivityLabels POST each -- driveItem carries no
+# label property in v1.0. This bounds that cost; items beyond the budget are
+# undetermined, and so withheld when fail_closed is set.
+max_file_checks: 25
+
+# Optional second stage: hand content to Microsoft Purview and honour the
+# tenant's own DLP verdict. Architecturally the better answer for
+# classification-only labels, because policy stays with the compliance team
+# instead of living in this file -- but it is INERT until an admin authors a
+# DLP policy targeting this app's location, and it requires the app
+# registration to hold Content.Process.User and ProtectionScopes.Compute.All.
+purview:
+  enabled: false
+  app_name: graph-mcp
+  app_version: "0.1.0"
+  # The Entra application (client) ID registered as a Purview policy location.
+  application_location_id: ""
+  max_content_checks: 25

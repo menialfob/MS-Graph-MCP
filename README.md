@@ -58,7 +58,8 @@ src/graph_mcp/
   policy/     route validation, scope globs, write gating
   schema/     CSDL parser for entity types
   fixtures/   the fixture tenant the server runs against by default
-config/       scope profiles, domain vocabulary, select defaults, write allowlist
+config/       scope profiles, domain vocabulary, select defaults, write
+              allowlist, and the (off-by-default) sensitivity-label gate
 eval/         gold sets and the retrieval harness
 ```
 
@@ -69,3 +70,7 @@ eval/         gold sets and the retrieval harness
 - [Architecture](docs/ARCHITECTURE.md) — why the design is what it is, and the
   measurements behind it
 - [Scope and permissions](docs/SCOPE.md) — read before changing a scope profile
+- [Sensitivity labels](docs/SENSITIVITY-LABELS.md) — why Purview labels are
+  not enforced by default, and
+  [how to enforce them](docs/SENSITIVITY-LABELS-BLOCKING.md) — the optional
+  label gate (`config/label_policy.yaml`), what it covers and what it costs

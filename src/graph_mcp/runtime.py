@@ -27,6 +27,7 @@ from graph_mcp.caller import LOCAL_CALLER, Caller
 from graph_mcp.graph.paging import CursorStore
 from graph_mcp.graph.shaping import Shaper
 from graph_mcp.graph.transport import FakeGraphTransport, GraphTransport
+from graph_mcp.policy.labels import LabelGate, LabelPolicy
 from graph_mcp.policy.routes import RouteTable
 from graph_mcp.policy.writes import WritePolicy
 from graph_mcp.retrieval.index import RetrievalIndex
@@ -48,6 +49,8 @@ class Runtime:
     shaper: Shaper
     writes: WritePolicy
     transport_factory: TransportFactory
+    # Off unless config/label_policy.yaml opts in; see policy/labels.py.
+    labels: LabelGate = field(default_factory=lambda: LabelGate(LabelPolicy()))
     cursors: CursorStore = field(default_factory=CursorStore)
     default_caller: Caller = LOCAL_CALLER
     _embedder: Any = None
@@ -141,5 +144,6 @@ def build_runtime(
         types=TypeIndex(metadata),
         shaper=Shaper.load(config_dir / "select_defaults.yaml"),
         writes=WritePolicy.load(config_dir / "write_allowlist.yaml"),
+        labels=LabelGate.load(config_dir / "label_policy.yaml"),
         transport_factory=transport_factory,
     )

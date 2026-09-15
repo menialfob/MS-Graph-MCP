@@ -115,11 +115,21 @@ class FakeGraphTransport:
                 "message": "Insufficient privileges to complete the operation.",
             }})
 
-        if request.method in ("POST", "PATCH", "PUT", "DELETE"):
-            return self._write_response(request)
-
         key = f"{request.method} {request.path}"
         payload = self.fixture.get("responses", {}).get(key)
+
+        # A fixture may pin an explicit status, so error paths are exercisable
+        # for any method, not just the happy path.
+        if isinstance(payload, dict) and "@status" in payload:
+            body = {k: v for k, v in payload.items() if k != "@status"}
+            return GraphResponse(int(payload["@status"]), body)
+
+        if request.method in ("POST", "PATCH", "PUT", "DELETE"):
+            # Bound actions such as extractSensitivityLabels are POSTs that read
+            # rather than write, so a fixture entry wins over the echo response.
+            if payload is not None:
+                return GraphResponse(200, dict(payload))
+            return self._write_response(request)
         if payload is None:
             return GraphResponse(404, {"error": {
                 "code": "itemNotFound",
