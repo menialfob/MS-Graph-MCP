@@ -35,6 +35,26 @@ That is why the design uses delegated / on-behalf-of auth, not app-only
 credentials. App-only plus an LLM is tenant-wide god-mode and discards the one
 property that makes the system safe to deploy.
 
+### What none of the three layers covers: data classification
+
+All three layers gate **operations** — a method and a path. None of them looks
+at the *content* of a response. A Microsoft Purview sensitivity label such as
+"Personal information" therefore has no effect here: labeled mail, files and
+messages are retrieved and returned like anything else, and Graph does not
+filter them server-side either.
+
+The boundary is still layer 3, so a caller can only reach labeled content they
+could already open themselves. But it means labeled content flows into a model's
+context window.
+
+A fourth layer exists for deployments that need to stop that:
+`config/label_policy.yaml` gates content on its Purview label, **off by
+default**. It is a client-side control, not a security boundary — it screens
+responses before they reach the model, it does not change what the caller is
+permitted to fetch. Read
+[SENSITIVITY-LABELS-BLOCKING.md](SENSITIVITY-LABELS-BLOCKING.md) before turning
+it on: the coverage gaps and the fail-closed cost are both real.
+
 ## The `end_user_helpdesk` profile
 
 **Included** — `/me/**`, user lookups and their common sub-resources (messages,
