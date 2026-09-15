@@ -141,6 +141,7 @@ class WhoAmI:
     executable_routes: int
     writes_enabled: bool
     transport: str
+    label_policy: dict[str, Any] = field(default_factory=dict)
 
 
 # --------------------------------------------------------------------------
@@ -196,9 +197,14 @@ async def _execute(
     request: GraphRequest,
     notes: list[str],
     entry: dict | None,
+    transport=None,
 ) -> GraphResult:
-    """Send a prepared request as `caller` and shape what comes back."""
-    transport = rt.transport_for(caller)
+    """Send a prepared request as `caller` and shape what comes back.
+
+    `transport` is passed in when the caller already built one -- graph_get does,
+    because the label gate needs it before the request is assembled.
+    """
+    transport = transport or rt.transport_for(caller)
     response = await transport.send(request)
 
     if not response.ok:
@@ -216,8 +222,18 @@ async def _execute(
             f"{error.guidance}"
         )
 
+    body = response.body
+    if rt.labels.enabled:
+        # Withhold labeled items before anything is shaped or returned. This is
+        # the last point at which the data is still only in this process.
+        screened = await rt.labels.screen(
+            transport=transport, request=request, body=body,
+            response_type=(entry or {}).get("response_type", ""),
+        )
+        body, notes = screened.body, [*notes, *screened.notes]
+
     selected = request.query.get("$select", "").split(",") if request.query.get("$select") else None
-    shaped = rt.shaper.shape(response.body, selected=selected)
+    shaped = rt.shaper.shape(body, selected=selected)
     notes = [*notes, *shaped.notes]
 
     cursor = None
@@ -487,13 +503,30 @@ def create_server(
                     "Pass select explicitly to override."
                 )
 
+        caller = current_caller(rt.default_caller)
+        transport = rt.transport_for(caller)
+
+        if rt.labels.enabled:
+            # Mail carries its label in extended properties, so the expansion
+            # rides along with the caller's own request rather than costing a
+            # second round trip.
+            label_expand = await rt.labels.mail_expand(
+                transport, (entry or {}).get("response_type", "")
+            )
+            if label_expand:
+                expand = [*(expand or []), label_expand]
+                notes.append(
+                    "Expanded sensitivity-label properties; a label policy is active."
+                )
+
         plan = odata.build(
             "GET", path, select=select, filter=filter, expand=expand,
             orderby=orderby, search=search, top=top, count=count,
         )
-        caller = current_caller(rt.default_caller)
         logger.debug("GET %s (caller=%s)", plan.request.url(), caller.subject)
-        return await _execute(rt, caller, plan.request, [*notes, *plan.notes], entry)
+        return await _execute(
+            rt, caller, plan.request, [*notes, *plan.notes], entry, transport
+        )
 
     @server.tool(
         name="graph_next_page",
@@ -617,6 +650,7 @@ def create_server(
             executable_routes=len(rt.routes.table),
             writes_enabled=rt.writes.enabled,
             transport=type(rt.transport_for(caller)).__name__,
+            label_policy=rt.labels.describe(),
         )
 
     return server

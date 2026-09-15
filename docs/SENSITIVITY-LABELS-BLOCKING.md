@@ -226,6 +226,91 @@ Layered, because no single mechanism covers the surface:
    that layer 1 is a usefulness decision, not a security boundary. A control
    asserted there would repeat the exact mistake that document warns about.
 
+## The implementation: `config/label_policy.yaml`
+
+Built as mechanism C with B as an optional second stage — A is out, because it
+needs a Microsoft 365 Copilot licence per user.
+
+**Off by default.** With `enabled: false` nothing runs, no extra calls are made,
+and the server behaves exactly as it did before. The switch is the whole of the
+blast radius: `LabelGate` is inert, and `tests/test_sensitivity_labels.py` still
+characterises the unfiltered behaviour.
+
+```
+config/label_policy.yaml        the switch and its settings
+src/graph_mcp/graph/labels.py   the four Graph label surfaces
+src/graph_mcp/policy/labels.py  the gate: decisions, fail-closed, stubs
+tests/test_label_gate.py        17 tests, switch on
+```
+
+### Turning it on
+
+```yaml
+enabled: true
+mode: annotate          # measure first
+blocked_labels: [Personal information]
+```
+
+`mode: annotate` changes nothing but reports what *would* be withheld, on real
+traffic. Run it there until the note stops surprising you, then switch to
+`mode: block`.
+
+### What happens per read
+
+1. **Pre-flight.** For mail, a `$expand` of the `MSIP_Label_*` properties is
+   added to the caller's own request, so mail costs **no extra round trip**.
+   The expansion names each blocked label explicitly — Graph's extended-property
+   filter has no prefix matching — so the gate can answer "does this carry a
+   blocked label?" but not "what label is this?".
+2. **Screen.** Files get one `extractSensitivityLabels` POST each, bounded by
+   `max_file_checks`. Items beyond the budget are undetermined.
+3. **Usage rights.** For encryption-backed labels (`hasProtection`), the
+   caller's rights are computed and `extract` + `view` are required. This is the
+   Copilot rule, and it applies whether or not the label is in `blocked_labels`.
+4. **Purview (optional).** `processContent` per surviving item, honouring
+   `blockAccess` / `restrictAccess`. Skipped entirely when
+   `protectionScopes/compute` reports no policy in scope.
+5. **Withhold.** Matching items are replaced by a stub keeping only `id`, plus
+   `withheldByPolicy` and a human-readable `withheldReason`. A note on the
+   result says how many went and why.
+
+The stub matters: a silently shortened list is indistinguishable from a list
+that was always that short, and a model cannot reason about an absence it
+cannot see.
+
+### Where enforcement happens, and why not earlier
+
+In the response, not the request. Refusing to make the call would be stronger,
+but a label belongs to an item and items are not known until the response
+arrives. The data crosses the wire into the process; it does not reach the
+context window. That is the ceiling for a client-side gate against Graph v1.0 —
+and precisely what the Retrieval API's pre-query `filterExpression` would beat,
+given a Copilot licence.
+
+### Fail-closed
+
+`fail_closed: true` (the default) treats *undetermined* as *labeled*: a
+`423 Locked` file, an unexpanded mail property, a failed lookup, an exhausted
+budget, a surface with no label read path at all. If the gate cannot even
+resolve which labels to block, it withholds the entire response.
+
+This will withhold unlabeled content, and users will notice. That is the
+trade: without it every failure mode is a bypass and the control is decorative.
+`fail_closed: false` is available and documented as the availability choice it
+is.
+
+### Cost
+
+| Surface | Extra calls |
+|---|---|
+| Mail | none (rides the caller's `$expand`) |
+| Files | 1 POST per item, capped at `max_file_checks` |
+| Encrypted labels | 1 rights call per protected label seen |
+| Purview stage | 1 scope call, then 1 POST per surviving item |
+
+Label *definitions* are cached: tenant metadata, not user data, so unlike
+anything derived from content it is safe to hold across callers.
+
 ## Honest coverage assessment
 
 Even fully built, this is partial:
@@ -233,7 +318,8 @@ Even fully built, this is partial:
 - **Mail is the weak spot.** Retrieval does not cover Exchange; extended-property
   expansion is clunky and per-item. Mail is also where this server's profile
   points first.
-- **Teams chat has no label read path at all** in v1.0.
+- **Teams chat has no label read path at all** in v1.0. The gate therefore
+  withholds it wholesale when fail-closed, which is correct but blunt.
 - **Subjects, filenames and paths leak regardless.** Labels protect content;
   metadata is returned in the clear by every one of these APIs. A subject line
   reading "Payroll: national ID for J. Lind" is disclosed even when the body is

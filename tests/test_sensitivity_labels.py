@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import pytest
 
+from graph_mcp.graph.labels import PS_PUBLIC_STRINGS
 from graph_mcp.graph.transport import FakeGraphTransport
 from tests.mcp_client import client_for, structured
 
@@ -23,8 +24,9 @@ pytestmark = pytest.mark.anyio
 # The GUID Purview assigns to the built-in "Personal information" label.
 PI_LABEL = "defa4170-0d19-0005-0007-bc88714345d2"
 
-# A Purview label on a mail item lives in MSIP_Label_<guid>_* extended
-# properties. `sensitivity` is the separate, unrelated legacy Outlook flag.
+# A Purview label on a mail item lives in MSIP_Label_<guid>_* named MAPI
+# properties in the PS_PUBLIC_STRINGS namespace -- the GUID in braces is that
+# namespace, not the label. `sensitivity` is the separate legacy Outlook flag.
 _LABELED_MESSAGE = {
     "id": "msg-personal-info",
     "subject": "Payroll: Q3 salary and national ID for J. Lind",
@@ -33,9 +35,9 @@ _LABELED_MESSAGE = {
     "isRead": False,
     "sensitivity": "personal",
     "singleValueExtendedProperties": [
-        {"id": f"String {{{PI_LABEL}}} Name MSIP_Label_{PI_LABEL}_Name",
+        {"id": f"String {PS_PUBLIC_STRINGS} Name MSIP_Label_{PI_LABEL}_Name",
          "value": "Personal information"},
-        {"id": f"String {{{PI_LABEL}}} Name MSIP_Label_{PI_LABEL}_Enabled",
+        {"id": f"String {PS_PUBLIC_STRINGS} Name MSIP_Label_{PI_LABEL}_Enabled",
          "value": "True"},
     ],
     "body": {"contentType": "text",

@@ -43,12 +43,17 @@ at the *content* of a response. A Microsoft Purview sensitivity label such as
 messages are retrieved and returned like anything else, and Graph does not
 filter them server-side either.
 
-This is a deliberate consequence of the design, not an oversight in it — the
-boundary is layer 3, so a caller can only reach labeled content they could
-already open themselves. But it means labeled content does flow into a model's
-context window. If that matters for a deployment, read
-[SENSITIVITY-LABELS.md](SENSITIVITY-LABELS.md), which measures exactly what is
-and is not possible against Graph v1.0 before anyone designs a control.
+The boundary is still layer 3, so a caller can only reach labeled content they
+could already open themselves. But it means labeled content flows into a model's
+context window.
+
+A fourth layer exists for deployments that need to stop that:
+`config/label_policy.yaml` gates content on its Purview label, **off by
+default**. It is a client-side control, not a security boundary — it screens
+responses before they reach the model, it does not change what the caller is
+permitted to fetch. Read
+[SENSITIVITY-LABELS-BLOCKING.md](SENSITIVITY-LABELS-BLOCKING.md) before turning
+it on: the coverage gaps and the fail-closed cost are both real.
 
 ## The `end_user_helpdesk` profile
 

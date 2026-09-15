@@ -7,7 +7,9 @@ the sense that the server does not retrieve data carrying that label?
 sensitivity label. A labeled item is retrieved, shaped and returned exactly
 like an unlabeled one. Graph does not do it on the server's behalf either.
 
-This is a gap, not a bug — no such control was ever designed. This document
+This is a gap, not a bug — no such control was designed at the time. One exists
+now, `config/label_policy.yaml`, but it is **off by default**, so everything
+below remains true of a stock deployment. This document
 records what was measured, why the obvious assumptions do not hold, and what
 implementing it would actually require.
 
