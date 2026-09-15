@@ -69,3 +69,5 @@ eval/         gold sets and the retrieval harness
 - [Architecture](docs/ARCHITECTURE.md) — why the design is what it is, and the
   measurements behind it
 - [Scope and permissions](docs/SCOPE.md) — read before changing a scope profile
+- [Sensitivity labels](docs/SENSITIVITY-LABELS.md) — why Purview labels are
+  not enforced, and what enforcing them would cost
