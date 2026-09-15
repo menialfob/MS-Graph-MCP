@@ -105,12 +105,26 @@ _ROUTES = {
 
 
 @pytest.fixture
-def transport() -> FakeGraphTransport:
-    return FakeGraphTransport.load(FIXTURE_TENANT, page_size=5)
+def fixture_data() -> dict:
+    data = json.loads(FIXTURE_TENANT.read_text(encoding="utf-8"))
+    # Two distinct users over one fixture, for the isolation tests.
+    data["callers"] = {
+        "alice": {"id": "alice", "display_name": "Alice",
+                  "user_principal_name": "alice@contoso.com"},
+        "bob": {"id": "bob", "display_name": "Bob",
+                "user_principal_name": "bob@contoso.com"},
+    }
+    return data
 
 
 @pytest.fixture
-def runtime(transport: FakeGraphTransport) -> Runtime:
+def transport(fixture_data) -> FakeGraphTransport:
+    """The transport handed to every caller in single-user tests."""
+    return FakeGraphTransport(fixture_data, page_size=5)
+
+
+@pytest.fixture
+def runtime(transport: FakeGraphTransport, fixture_data) -> Runtime:
     texts = [f"{e['title']} {e['description']}" for e in _ENTRIES]
     meta = IndexMeta(
         profile="test", graph_version="v1.0", embedder="none", paraphraser="none",
@@ -126,8 +140,19 @@ def runtime(transport: FakeGraphTransport) -> Runtime:
         types=TypeIndex(Path(".cache/metadata-v1.0.xml")),
         shaper=Shaper.load(CONFIG / "select_defaults.yaml"),
         writes=WritePolicy.load(CONFIG / "write_allowlist.yaml"),
-        transport=transport,
+        # Single shared transport so tests can inspect what was sent. The
+        # multi-user tests below override this with a per-caller factory.
+        transport_factory=lambda caller: transport,
     )
+
+
+@pytest.fixture
+def multiuser_runtime(runtime: Runtime, fixture_data) -> Runtime:
+    """A runtime that builds a distinct transport per caller, as hosting does."""
+    runtime.transport_factory = lambda caller: FakeGraphTransport(
+        fixture_data, page_size=5, caller=caller
+    )
+    return runtime
 
 
 @pytest.fixture

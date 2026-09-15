@@ -31,9 +31,14 @@ import yaml
 from graph_mcp.graph.request import GraphRequest
 from graph_mcp.policy.globs import match_any
 
-# Per-process secret: confirm tokens are meaningful only within the session
-# that issued them, and must not survive a restart.
-_SECRET = os.urandom(32)
+# Signing key for confirm tokens.
+#
+# A random per-process key is right for a single-process server, but a remote
+# deployment behind a load balancer would then reject tokens issued by another
+# replica. Set GRAPH_MCP_CONFIRM_SECRET so every replica agrees; otherwise the
+# server generates an ephemeral key and confirmation only works against the
+# replica that issued the plan.
+_SECRET = os.environ.get("GRAPH_MCP_CONFIRM_SECRET", "").encode() or os.urandom(32)
 
 
 @dataclass
@@ -81,10 +86,16 @@ class WritePolicy:
         )
 
 
-def confirm_token(request: GraphRequest) -> str:
-    """Token bound to this exact request."""
+def confirm_token(request: GraphRequest, subject: str = "") -> str:
+    """Token bound to this exact request AND this caller.
+
+    Binding the subject matters in a multi-user server: without it, a plan
+    approved for one user is a valid confirmation for the identical request
+    issued by anyone else.
+    """
     payload = json.dumps(
         {
+            "subject": subject,
             "method": request.method,
             "path": request.path,
             "query": request.query,
@@ -97,5 +108,5 @@ def confirm_token(request: GraphRequest) -> str:
     return hmac.new(_SECRET, payload, hashlib.sha256).hexdigest()[:32]
 
 
-def verify(request: GraphRequest, token: str) -> bool:
-    return hmac.compare_digest(confirm_token(request), token or "")
+def verify(request: GraphRequest, token: str, subject: str = "") -> bool:
+    return hmac.compare_digest(confirm_token(request, subject), token or "")

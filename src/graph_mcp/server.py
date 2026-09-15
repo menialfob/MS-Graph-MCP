@@ -11,6 +11,11 @@ open-world. Structured output schemas are derived from the return types, so
 clients that understand structured content get typed results and clients that
 do not still get readable text.
 
+This server is built to be hosted remotely over Streamable HTTP, serving many
+users from one process. Every tool therefore resolves the calling user from the
+request's access token and threads it through to the transport; no identity,
+token or scope is ever cached on the server. See docs/DEPLOYMENT.md.
+
 The server talks to Graph only through `GraphTransport`. It defaults to a
 fixture tenant, so it runs and is fully exercisable with no credentials.
 """
@@ -25,6 +30,7 @@ from mcp.server.mcpserver import MCPServer
 from mcp.server.mcpserver.exceptions import ToolError
 from mcp.types import ToolAnnotations
 
+from graph_mcp.caller import Caller, current_caller
 from graph_mcp.graph import odata
 from graph_mcp.graph.errors import translate
 from graph_mcp.graph.request import GraphRequest
@@ -184,10 +190,15 @@ def _lookup(rt: Runtime, operation_id: str) -> dict:
 
 
 async def _execute(
-    rt: Runtime, request: GraphRequest, notes: list[str], entry: dict | None
+    rt: Runtime,
+    caller: Caller,
+    request: GraphRequest,
+    notes: list[str],
+    entry: dict | None,
 ) -> GraphResult:
-    """Send a prepared request and shape what comes back."""
-    response = await rt.transport.send(request)
+    """Send a prepared request as `caller` and shape what comes back."""
+    transport = rt.transport_for(caller)
+    response = await transport.send(request)
 
     if not response.ok:
         required = (entry or {}).get("permissions", {}).get("least", {}).get(
@@ -195,7 +206,7 @@ async def _execute(
         )
         error = translate(
             response.status, response.body, response.headers,
-            required_scopes=required, granted_scopes=await rt.granted_scopes(),
+            required_scopes=required, granted_scopes=list(caller.scopes),
         )
         # A Graph-side failure is a tool error: the model should see it and
         # adapt, not receive it as a successful result it might misread.
@@ -210,7 +221,9 @@ async def _execute(
 
     cursor = None
     if link := response.next_link:
-        cursor = rt.cursors.put(link, f"{request.method} {request.path}", page=1)
+        cursor = rt.cursors.put(
+            caller.subject, link, f"{request.method} {request.path}", page=1
+        )
         notes.append("More results available; pass the cursor to graph_next_page.")
     # The raw nextLink is a long opaque skiptoken URL; the cursor replaces it.
     shaped.body.pop("@odata.nextLink", None)
@@ -232,13 +245,26 @@ async def _execute(
 # --------------------------------------------------------------------------
 
 
-def create_server(runtime: Runtime | None = None) -> MCPServer:
+def create_server(
+    runtime: Runtime | None = None,
+    *,
+    auth_settings=None,
+    token_verifier=None,
+) -> MCPServer:
+    """Build the server.
+
+    `auth_settings` and `token_verifier` are supplied by the HTTP entry point
+    (graph_mcp.http). Left unset, the server runs unauthenticated as a single
+    local developer, which is only appropriate for stdio or localhost.
+    """
     rt = runtime or build_runtime()
 
     server = MCPServer(
         name="microsoft-graph",
         title="Microsoft Graph",
         version="0.1.0",
+        auth=auth_settings,
+        token_verifier=token_verifier,
         instructions=(
             "Query Microsoft Graph on behalf of the signed-in user.\n\n"
             "Microsoft Graph has ~17,800 operations, so they are not exposed as "
@@ -281,11 +307,16 @@ def create_server(runtime: Runtime | None = None) -> MCPServer:
             raise ToolError("intent must not be empty.")
         top_k = max(1, min(top_k, 25))
 
-        granted: set[str] | None = None
-        try:
-            granted = set(await rt.granted_scopes())
-        except Exception:  # noqa: BLE001 - identity is best-effort here
-            granted = None
+        caller = current_caller(rt.default_caller)
+        granted: set[str] | None = set(caller.scopes) if caller.scopes else None
+        if granted is None:
+            # No scopes on the token (or no auth layer): ask the transport,
+            # which in a delegated setup can report them from /me.
+            try:
+                identity = await rt.transport_for(caller).identity()
+                granted = set(identity.get("scopes", [])) or None
+            except Exception:  # noqa: BLE001 - scope annotation is best-effort
+                granted = None
 
         results = rt.index.search(
             intent, top_k=top_k * 3, query_vector=rt.embed_query(intent)
@@ -459,8 +490,9 @@ def create_server(runtime: Runtime | None = None) -> MCPServer:
             "GET", path, select=select, filter=filter, expand=expand,
             orderby=orderby, search=search, top=top, count=count,
         )
-        logger.debug("GET %s", plan.request.url())
-        return await _execute(rt, plan.request, [*notes, *plan.notes], entry)
+        caller = current_caller(rt.default_caller)
+        logger.debug("GET %s (caller=%s)", plan.request.url(), caller.subject)
+        return await _execute(rt, caller, plan.request, [*notes, *plan.notes], entry)
 
     @server.tool(
         name="graph_next_page",
@@ -472,7 +504,10 @@ def create_server(runtime: Runtime | None = None) -> MCPServer:
 
         Pass the cursor returned by graph_get or a prior graph_next_page.
         """
-        entry_ref = rt.cursors.get(cursor)
+        caller = current_caller(rt.default_caller)
+        # A cursor belonging to another caller is reported exactly like one
+        # that does not exist -- the response must not confirm it is real.
+        entry_ref = rt.cursors.get(caller.subject, cursor)
         if entry_ref is None:
             raise ToolError(
                 f"Cursor '{cursor}' is unknown or expired. Re-run the original "
@@ -481,7 +516,7 @@ def create_server(runtime: Runtime | None = None) -> MCPServer:
         request = next_link_to_request(entry_ref.next_link)
         match = rt.routes.match(request.path)
         entry = _entry_for_route(rt, "GET", match.template) if match else None
-        result = await _execute(rt, request, [], entry)
+        result = await _execute(rt, caller, request, [], entry)
         result.notes.insert(0, f"Page {entry_ref.page + 1} of {entry_ref.operation}.")
         return result
 
@@ -524,8 +559,9 @@ def create_server(runtime: Runtime | None = None) -> MCPServer:
         if not permitted:
             raise ToolError(why)
 
+        caller = current_caller(rt.default_caller)
         request = GraphRequest(method=method, path=path, body=body)
-        token = confirm_token(request)
+        token = confirm_token(request, caller.subject)
 
         if dry_run:
             return WritePlan(
@@ -537,16 +573,18 @@ def create_server(runtime: Runtime | None = None) -> MCPServer:
                 ],
             )
 
-        if rt.writes.require_confirmation and not verify(request, confirm or ""):
+        if rt.writes.require_confirmation and not verify(
+            request, confirm or "", caller.subject
+        ):
             raise ToolError(
                 "Missing or invalid confirm token. Run with dry_run=true, review "
                 "the request, then pass the token it returns. A token only "
                 "matches the exact request it was issued for."
             )
 
-        logger.info("Executing %s %s", method, path)
+        logger.info("Executing %s %s (caller=%s)", method, path, caller.subject)
         entry = _entry_for_route(rt, method, match.template)
-        result = await _execute(rt, request, [], entry)
+        result = await _execute(rt, caller, request, [], entry)
         return WritePlan(
             executed=True, request=result.request, status=result.status,
             data=result.data, notes=result.notes,
@@ -564,26 +602,32 @@ def create_server(runtime: Runtime | None = None) -> MCPServer:
         permission scopes the token actually carries, so you do not propose
         operations that will be denied.
         """
-        identity = await rt.identity()
+        caller = current_caller(rt.default_caller)
+        identity = await rt.transport_for(caller).identity()
         meta = rt.index.meta
         return WhoAmI(
             id=identity.get("id", ""),
             display_name=identity.get("display_name", ""),
             user_principal_name=identity.get("user_principal_name", ""),
-            granted_scopes=list(identity.get("scopes", [])),
+            granted_scopes=list(caller.scopes) or list(identity.get("scopes", [])),
             catalog_profile=meta.profile,
             graph_version=meta.graph_version,
             indexed_operations=meta.n_operations,
             executable_routes=len(rt.routes.table),
             writes_enabled=rt.writes.enabled,
-            transport=type(rt.transport).__name__,
+            transport=type(rt.transport_for(caller)).__name__,
         )
 
     return server
 
 
 def main() -> None:
-    """stdio entry point."""
+    """stdio entry point, for local development and desktop clients.
+
+    The intended production deployment is remote over Streamable HTTP; see
+    graph_mcp.http and docs/DEPLOYMENT.md.
+    """
+    logging.basicConfig(level=logging.INFO)
     create_server().run()
 
 

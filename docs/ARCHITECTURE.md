@@ -28,6 +28,25 @@ already knows and hallucinates on the long tail.
 This design keeps the discover-then-execute shape, extends it across the M365
 workloads, and adds scope-aware filtering and a gated write path.
 
+## Hosting model
+
+The server is **hosted remotely over Streamable HTTP and shared by many users**,
+acting as an OAuth 2.1 resource server. stdio exists for local development.
+
+This shapes the internals more than it might appear. A stdio server is one
+process per user, so identity can be process state; a hosted server is one
+process serving many users, and that same assumption is a data leak. So:
+
+* `Runtime` holds only shared read-only state — index, routes, CSDL, policies.
+* Identity, scopes and the Graph transport are resolved **per request** from the
+  verified token and never cached (`src/graph_mcp/caller.py`).
+* Pagination cursors are **owned**: a cursor is only returned to the subject
+  that created it, and a foreign cursor is indistinguishable from a missing one.
+* Write confirm tokens are bound to the caller as well as the request.
+
+`tests/test_multiuser.py` fails if any of those are removed. Details in
+[DEPLOYMENT.md](DEPLOYMENT.md).
+
 ## Tool surface
 
 ```

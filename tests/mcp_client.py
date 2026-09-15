@@ -53,3 +53,25 @@ def failure(result) -> str:
 
 def _text(result) -> str:
     return " ".join(c.text for c in result.content if getattr(c, "type", "") == "text")
+
+
+@asynccontextmanager
+async def client_as(server, subject: str, scopes: tuple[str, ...] = ()):
+    """A client session whose requests are attributed to `subject`.
+
+    Simulates what the auth middleware does in a hosted deployment: each
+    request arrives carrying a different authenticated user. Patching
+    `current_caller` is the smallest faithful stand-in for a verified token.
+    """
+    import graph_mcp.server as server_module
+    from graph_mcp.caller import Caller
+
+    original = server_module.current_caller
+    server_module.current_caller = lambda fallback=None: Caller(
+        subject=subject, scopes=scopes
+    )
+    try:
+        async with client_for(server) as session:
+            yield session
+    finally:
+        server_module.current_caller = original

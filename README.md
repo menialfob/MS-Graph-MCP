@@ -8,10 +8,14 @@ many to present as MCP tools. The architecture is therefore *discover → inspec
 → execute*: a small fixed tool surface, with a retrieval index doing the action
 identification.
 
+Built to be **hosted remotely over Streamable HTTP** and shared by many users,
+each authenticated as themselves. stdio is available for local development.
+
 **Current state:** the corpus pipeline, retrieval index, evaluation harness and
 the MCP server are all built. The server runs against a fixture tenant, so it
-is fully exercisable without credentials; wiring it to a real tenant is a
-single `GraphTransport` implementation — see [docs/SERVER.md](docs/SERVER.md).
+is fully exercisable without credentials; wiring it to a real tenant is a single
+`TransportFactory` — see [docs/SERVER.md](docs/SERVER.md) and
+[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
 
 ## Results
 
@@ -39,7 +43,10 @@ python -m pipeline.build_index --profile end_user_helpdesk --out artifacts/index
 # try retrieval on its own
 python -m pipeline.query "who reports to my manager"
 
-# run the MCP server (fixture tenant, no credentials needed)
+# run the server over HTTP (fixture tenant, no credentials needed)
+GRAPH_MCP_OFFLINE=1 PYTHONPATH=src python -m graph_mcp.http --port 8000
+
+# ...or over stdio, for a desktop client
 GRAPH_MCP_OFFLINE=1 PYTHONPATH=src python -m graph_mcp.server
 
 # measure it
@@ -53,7 +60,9 @@ python eval/run_retrieval_eval.py --show-misses 10
 pipeline/     corpus build: fetch, parse, join, curate, alias, index
 src/graph_mcp/
   server.py   the MCP server: seven tools over ~17,800 operations
-  runtime.py  index, routes, policy and transport, assembled once
+  http.py     remote hosting: Streamable HTTP, OAuth, transport security
+  caller.py   per-request identity; nothing about a user is cached
+  runtime.py  shared read-only state + a per-caller transport factory
   graph/      transport seam, OData, paging, shaping, error translation
   retrieval/  BM25, embedders, hybrid index
   policy/     route validation, scope globs, write gating
@@ -68,4 +77,5 @@ docs/         ARCHITECTURE.md, SERVER.md, SCOPE.md
 
 - [Architecture](docs/ARCHITECTURE.md) — design, corpus strategy, measured results
 - [Server](docs/SERVER.md) — tools, spec conformance, and how to port the transport
+- [Deployment](docs/DEPLOYMENT.md) — **remote hosting: auth, isolation, scaling**
 - [Scope and permissions](docs/SCOPE.md) — **read before changing a scope profile**

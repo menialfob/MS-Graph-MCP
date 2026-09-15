@@ -71,9 +71,10 @@ class FakeGraphTransport:
     real rather than mocked.
     """
 
-    def __init__(self, fixture: dict[str, Any], *, page_size: int = 10):
+    def __init__(self, fixture: dict[str, Any], *, page_size: int = 10, caller=None):
         self.fixture = fixture
         self.page_size = page_size
+        self.caller = caller
         self.sent: list[GraphRequest] = []
         self.fail_next: tuple[int, dict] | None = None
 
@@ -82,7 +83,19 @@ class FakeGraphTransport:
         return cls(json.loads(path.read_text(encoding="utf-8")), **kw)
 
     async def identity(self) -> dict[str, Any]:
-        return self.fixture.get("identity", {})
+        """Fixture identity, overlaid with the caller when one is supplied.
+
+        Lets tests exercise several distinct users against one fixture, which
+        is how the multi-user isolation tests work.
+        """
+        identity = dict(self.fixture.get("identity", {}))
+        per_caller = self.fixture.get("callers", {}).get(
+            getattr(self.caller, "subject", ""), {}
+        )
+        identity.update(per_caller)
+        if self.caller is not None and self.caller.scopes:
+            identity["scopes"] = list(self.caller.scopes)
+        return identity
 
     async def send(self, request: GraphRequest) -> GraphResponse:
         self.sent.append(request)

@@ -3,8 +3,16 @@
 Seven tools over ~17,800 Graph operations. Runs against a fixture tenant out of
 the box, so everything below can be exercised with no credentials.
 
+The target deployment is **remote hosting over Streamable HTTP**, shared by many
+users — see [DEPLOYMENT.md](DEPLOYMENT.md) for auth, isolation and scaling.
+stdio is for local development and desktop clients.
+
 ```bash
-GRAPH_MCP_OFFLINE=1 PYTHONPATH=src python -m graph_mcp.server   # stdio
+# remote (intended)
+python -m graph_mcp.http --host 0.0.0.0 --port 8000 --resource-url https://...
+
+# local development
+GRAPH_MCP_OFFLINE=1 PYTHONPATH=src python -m graph_mcp.server
 ```
 
 ## Tools
@@ -47,13 +55,19 @@ round-trip. The path is validated either way.
 ## Porting to your own transport
 
 The server touches Graph only through `GraphTransport`
-(`src/graph_mcp/graph/transport.py`):
+(`src/graph_mcp/graph/transport.py`), built per request for the calling user:
 
 ```python
 class GraphTransport(Protocol):
     async def send(self, request: GraphRequest) -> GraphResponse: ...
     async def identity(self) -> dict[str, Any]: ...
+
+TransportFactory = Callable[[Caller], GraphTransport]   # what you provide
 ```
+
+The factory receives the authenticated `Caller` for that request. In a hosted
+deployment this is how each user's own token reaches Graph; returning a single
+shared transport would make every caller act as the same user.
 
 Everything else -- retrieval, route validation, OData construction, shaping,
 paging, write gating, error translation -- is transport-agnostic.
@@ -64,13 +78,16 @@ jittered backoff, JSON error handling) and takes a `token_provider`:
 ```python
 from graph_mcp.graph.transport import HttpGraphTransport
 from graph_mcp.runtime import build_runtime
-from graph_mcp.server import create_server
 
-async def token_provider() -> str:
-    return await your_identity_layer.access_token_for_current_user()
+def transport_factory(caller):
+    async def token_provider() -> str:
+        # Exchange the caller's token for a Graph token (on-behalf-of), or
+        # pass it through if the audience is already Graph.
+        return await your_identity_layer.graph_token_for(caller.token)
 
-server = create_server(build_runtime(transport=HttpGraphTransport(token_provider)))
-server.run()
+    return HttpGraphTransport(token_provider)
+
+runtime = build_runtime(transport_factory=transport_factory)
 ```
 
 The server never acquires or stores credentials. Delegated / on-behalf-of is
@@ -124,6 +141,18 @@ catalog. Closest known paths: /me/messages, /me/messages/{}, /me/messages/delta.
 | `GRAPH_MCP_OFFLINE` | unset | Load the embedding model from cache only |
 
 ## Client configuration
+
+Remote (the intended deployment):
+
+```json
+{
+  "mcpServers": {
+    "microsoft-graph": { "url": "https://graph-mcp.example.com/mcp" }
+  }
+}
+```
+
+Local stdio, for development:
 
 ```json
 {
