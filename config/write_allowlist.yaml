@@ -1,0 +1,34 @@
+# Writes this deployment permits. Empty and disabled by default.
+#
+# The end_user_helpdesk scope profile already keeps directory and tenant
+# writes out of the catalog. This is the narrower question of which of the
+# remaining writes should be executable at all -- end-user-owned resources
+# only: your own mail, calendar, tasks, files and chat messages.
+#
+# Nothing here grants permission. The token's delegated scopes still bound
+# every call. See docs/SCOPE.md.
+enabled: false
+require_confirmation: true
+
+allow:
+  # Mail the signed-in user sends or drafts
+  - POST /me/sendMail
+  - POST /me/messages
+  - POST /me/messages/{}/reply
+  - POST /me/messages/{}/replyAll
+  - POST /me/messages/{}/forward
+  - PATCH /me/messages/{}
+  - POST /me/messages/{}/move
+  # Own calendar
+  - POST /me/events
+  - PATCH /me/events/{}
+  - POST /me/events/{}/accept
+  - POST /me/events/{}/decline
+  - POST /me/events/{}/tentativelyAccept
+  - POST /me/calendars/{}/events
+  # Own tasks
+  - POST /me/todo/lists
+  - POST /me/todo/lists/{}/tasks
+  - PATCH /me/todo/lists/{}/tasks/{}
+  # Chat messages the user posts
+  - POST /chats/{}/messages

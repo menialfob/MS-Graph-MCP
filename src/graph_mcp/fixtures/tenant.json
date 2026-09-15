@@ -1,0 +1,719 @@
+{
+ "identity": {
+  "id": "user-me",
+  "display_name": "Test User",
+  "user_principal_name": "you@contoso.com",
+  "scopes": [
+   "User.Read",
+   "User.ReadBasic.All",
+   "Mail.Read",
+   "Mail.Send",
+   "Calendars.ReadWrite",
+   "Files.Read",
+   "Group.Read.All",
+   "People.Read",
+   "Presence.Read",
+   "Tasks.ReadWrite"
+  ]
+ },
+ "scopes_required": {
+  "GET /auditLogs/signIns": [
+   "AuditLog.Read.All"
+  ]
+ },
+ "responses": {
+  "GET /me": {
+   "id": "user-me",
+   "displayName": "Test User",
+   "userPrincipalName": "you@contoso.com",
+   "mail": "you@contoso.com",
+   "jobTitle": "Principal Engineer",
+   "department": "Engineering",
+   "officeLocation": "Floor 3",
+   "accountEnabled": true
+  },
+  "GET /me/messages": {
+   "value": [
+    {
+     "id": "msg-0",
+     "subject": "Q3 budget review",
+     "from": {
+      "emailAddress": {
+       "name": "Anna Nielsen",
+       "address": "anna.nielsen@contoso.com"
+      }
+     },
+     "toRecipients": [
+      {
+       "emailAddress": {
+        "address": "you@contoso.com"
+       }
+      }
+     ],
+     "receivedDateTime": "2026-09-10T09:00:00Z",
+     "isRead": true,
+     "hasAttachments": true,
+     "importance": "normal",
+     "webLink": "https://outlook.office.com/mail/0",
+     "body": {
+      "contentType": "html",
+      "content": "<html><body>filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler </body></html>"
+     }
+    },
+    {
+     "id": "msg-1",
+     "subject": "Re: deployment window",
+     "from": {
+      "emailAddress": {
+       "name": "Bjorn Larsen",
+       "address": "bjorn.larsen@contoso.com"
+      }
+     },
+     "toRecipients": [
+      {
+       "emailAddress": {
+        "address": "you@contoso.com"
+       }
+      }
+     ],
+     "receivedDateTime": "2026-09-11T09:01:00Z",
+     "isRead": false,
+     "hasAttachments": false,
+     "importance": "high",
+     "webLink": "https://outlook.office.com/mail/1",
+     "body": {
+      "contentType": "html",
+      "content": "<html><body>filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler </body></html>"
+     }
+    },
+    {
+     "id": "msg-2",
+     "subject": "Team offsite planning",
+     "from": {
+      "emailAddress": {
+       "name": "Carla Mendes",
+       "address": "carla.mendes@contoso.com"
+      }
+     },
+     "toRecipients": [
+      {
+       "emailAddress": {
+        "address": "you@contoso.com"
+       }
+      }
+     ],
+     "receivedDateTime": "2026-09-12T09:02:00Z",
+     "isRead": false,
+     "hasAttachments": false,
+     "importance": "low",
+     "webLink": "https://outlook.office.com/mail/2",
+     "body": {
+      "contentType": "html",
+      "content": "<html><body>filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler </body></html>"
+     }
+    },
+    {
+     "id": "msg-3",
+     "subject": "Contract renewal - Northwind",
+     "from": {
+      "emailAddress": {
+       "name": "Dmitri Volkov",
+       "address": "dmitri.volkov@contoso.com"
+      }
+     },
+     "toRecipients": [
+      {
+       "emailAddress": {
+        "address": "you@contoso.com"
+       }
+      }
+     ],
+     "receivedDateTime": "2026-09-13T09:03:00Z",
+     "isRead": true,
+     "hasAttachments": false,
+     "importance": "normal",
+     "webLink": "https://outlook.office.com/mail/3",
+     "body": {
+      "contentType": "html",
+      "content": "<html><body>filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler </body></html>"
+     }
+    },
+    {
+     "id": "msg-4",
+     "subject": "Expense report reminder",
+     "from": {
+      "emailAddress": {
+       "name": "Elena Rossi",
+       "address": "elena.rossi@contoso.com"
+      }
+     },
+     "toRecipients": [
+      {
+       "emailAddress": {
+        "address": "you@contoso.com"
+       }
+      }
+     ],
+     "receivedDateTime": "2026-09-14T09:04:00Z",
+     "isRead": false,
+     "hasAttachments": true,
+     "importance": "high",
+     "webLink": "https://outlook.office.com/mail/4",
+     "body": {
+      "contentType": "html",
+      "content": "<html><body>filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler </body></html>"
+     }
+    },
+    {
+     "id": "msg-5",
+     "subject": "Re: Q3 budget review",
+     "from": {
+      "emailAddress": {
+       "name": "Anna Nielsen",
+       "address": "anna.nielsen@contoso.com"
+      }
+     },
+     "toRecipients": [
+      {
+       "emailAddress": {
+        "address": "you@contoso.com"
+       }
+      }
+     ],
+     "receivedDateTime": "2026-09-10T09:05:00Z",
+     "isRead": false,
+     "hasAttachments": false,
+     "importance": "low",
+     "webLink": "https://outlook.office.com/mail/5",
+     "body": {
+      "contentType": "html",
+      "content": "<html><body>filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler </body></html>"
+     }
+    },
+    {
+     "id": "msg-6",
+     "subject": "Security training due",
+     "from": {
+      "emailAddress": {
+       "name": "IT Helpdesk",
+       "address": "helpdesk@contoso.com"
+      }
+     },
+     "toRecipients": [
+      {
+       "emailAddress": {
+        "address": "you@contoso.com"
+       }
+      }
+     ],
+     "receivedDateTime": "2026-09-11T09:06:00Z",
+     "isRead": true,
+     "hasAttachments": false,
+     "importance": "normal",
+     "webLink": "https://outlook.office.com/mail/6",
+     "body": {
+      "contentType": "html",
+      "content": "<html><body>filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler </body></html>"
+     }
+    },
+    {
+     "id": "msg-7",
+     "subject": "Lunch?",
+     "from": {
+      "emailAddress": {
+       "name": "Bjorn Larsen",
+       "address": "bjorn.larsen@contoso.com"
+      }
+     },
+     "toRecipients": [
+      {
+       "emailAddress": {
+        "address": "you@contoso.com"
+       }
+      }
+     ],
+     "receivedDateTime": "2026-09-12T09:07:00Z",
+     "isRead": false,
+     "hasAttachments": false,
+     "importance": "high",
+     "webLink": "https://outlook.office.com/mail/7",
+     "body": {
+      "contentType": "html",
+      "content": "<html><body>filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler </body></html>"
+     }
+    },
+    {
+     "id": "msg-8",
+     "subject": "Sprint 42 notes",
+     "from": {
+      "emailAddress": {
+       "name": "Carla Mendes",
+       "address": "carla.mendes@contoso.com"
+      }
+     },
+     "toRecipients": [
+      {
+       "emailAddress": {
+        "address": "you@contoso.com"
+       }
+      }
+     ],
+     "receivedDateTime": "2026-09-13T09:08:00Z",
+     "isRead": false,
+     "hasAttachments": true,
+     "importance": "low",
+     "webLink": "https://outlook.office.com/mail/8",
+     "body": {
+      "contentType": "html",
+      "content": "<html><body>filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler </body></html>"
+     }
+    },
+    {
+     "id": "msg-9",
+     "subject": "Invoice #4471",
+     "from": {
+      "emailAddress": {
+       "name": "Accounts",
+       "address": "ap@contoso.com"
+      }
+     },
+     "toRecipients": [
+      {
+       "emailAddress": {
+        "address": "you@contoso.com"
+       }
+      }
+     ],
+     "receivedDateTime": "2026-09-14T09:09:00Z",
+     "isRead": true,
+     "hasAttachments": false,
+     "importance": "normal",
+     "webLink": "https://outlook.office.com/mail/9",
+     "body": {
+      "contentType": "html",
+      "content": "<html><body>filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler </body></html>"
+     }
+    },
+    {
+     "id": "msg-10",
+     "subject": "Re: Team offsite planning",
+     "from": {
+      "emailAddress": {
+       "name": "Carla Mendes",
+       "address": "carla.mendes@contoso.com"
+      }
+     },
+     "toRecipients": [
+      {
+       "emailAddress": {
+        "address": "you@contoso.com"
+       }
+      }
+     ],
+     "receivedDateTime": "2026-09-10T09:10:00Z",
+     "isRead": false,
+     "hasAttachments": false,
+     "importance": "high",
+     "webLink": "https://outlook.office.com/mail/10",
+     "body": {
+      "contentType": "html",
+      "content": "<html><body>filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler </body></html>"
+     }
+    },
+    {
+     "id": "msg-11",
+     "subject": "Password expiry notice",
+     "from": {
+      "emailAddress": {
+       "name": "IT Helpdesk",
+       "address": "helpdesk@contoso.com"
+      }
+     },
+     "toRecipients": [
+      {
+       "emailAddress": {
+        "address": "you@contoso.com"
+       }
+      }
+     ],
+     "receivedDateTime": "2026-09-11T09:11:00Z",
+     "isRead": false,
+     "hasAttachments": false,
+     "importance": "low",
+     "webLink": "https://outlook.office.com/mail/11",
+     "body": {
+      "contentType": "html",
+      "content": "<html><body>filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler filler </body></html>"
+     }
+    }
+   ]
+  },
+  "GET /me/events": {
+   "value": [
+    {
+     "id": "evt-0",
+     "subject": "Sprint planning",
+     "start": {
+      "dateTime": "2026-09-15T09:00:00",
+      "timeZone": "UTC"
+     },
+     "end": {
+      "dateTime": "2026-09-15T10:00:00",
+      "timeZone": "UTC"
+     },
+     "location": {
+      "displayName": "Room 4A"
+     },
+     "isAllDay": false,
+     "isCancelled": false,
+     "organizer": {
+      "emailAddress": {
+       "name": "Carla Mendes",
+       "address": "carla.mendes@contoso.com"
+      }
+     },
+     "attendees": [],
+     "webLink": "https://outlook.office.com/calendar/0"
+    },
+    {
+     "id": "evt-1",
+     "subject": "1:1 with Carla",
+     "start": {
+      "dateTime": "2026-09-15T10:00:00",
+      "timeZone": "UTC"
+     },
+     "end": {
+      "dateTime": "2026-09-15T11:00:00",
+      "timeZone": "UTC"
+     },
+     "location": {
+      "displayName": "Teams"
+     },
+     "isAllDay": false,
+     "isCancelled": false,
+     "organizer": {
+      "emailAddress": {
+       "name": "Carla Mendes",
+       "address": "carla.mendes@contoso.com"
+      }
+     },
+     "attendees": [],
+     "webLink": "https://outlook.office.com/calendar/1"
+    },
+    {
+     "id": "evt-2",
+     "subject": "Architecture review",
+     "start": {
+      "dateTime": "2026-09-15T11:00:00",
+      "timeZone": "UTC"
+     },
+     "end": {
+      "dateTime": "2026-09-15T12:00:00",
+      "timeZone": "UTC"
+     },
+     "location": {
+      "displayName": "Room 2B"
+     },
+     "isAllDay": false,
+     "isCancelled": false,
+     "organizer": {
+      "emailAddress": {
+       "name": "Carla Mendes",
+       "address": "carla.mendes@contoso.com"
+      }
+     },
+     "attendees": [],
+     "webLink": "https://outlook.office.com/calendar/2"
+    },
+    {
+     "id": "evt-3",
+     "subject": "All hands",
+     "start": {
+      "dateTime": "2026-09-15T12:00:00",
+      "timeZone": "UTC"
+     },
+     "end": {
+      "dateTime": "2026-09-15T13:00:00",
+      "timeZone": "UTC"
+     },
+     "location": {
+      "displayName": "Auditorium"
+     },
+     "isAllDay": false,
+     "isCancelled": false,
+     "organizer": {
+      "emailAddress": {
+       "name": "Carla Mendes",
+       "address": "carla.mendes@contoso.com"
+      }
+     },
+     "attendees": [],
+     "webLink": "https://outlook.office.com/calendar/3"
+    }
+   ]
+  },
+  "GET /me/calendarView": {
+   "value": [
+    {
+     "id": "evt-0",
+     "subject": "Sprint planning",
+     "start": {
+      "dateTime": "2026-09-15T09:00:00",
+      "timeZone": "UTC"
+     },
+     "end": {
+      "dateTime": "2026-09-15T10:00:00",
+      "timeZone": "UTC"
+     },
+     "location": {
+      "displayName": "Room 4A"
+     },
+     "isAllDay": false,
+     "isCancelled": false,
+     "organizer": {
+      "emailAddress": {
+       "name": "Carla Mendes",
+       "address": "carla.mendes@contoso.com"
+      }
+     },
+     "attendees": [],
+     "webLink": "https://outlook.office.com/calendar/0"
+    },
+    {
+     "id": "evt-1",
+     "subject": "1:1 with Carla",
+     "start": {
+      "dateTime": "2026-09-15T10:00:00",
+      "timeZone": "UTC"
+     },
+     "end": {
+      "dateTime": "2026-09-15T11:00:00",
+      "timeZone": "UTC"
+     },
+     "location": {
+      "displayName": "Teams"
+     },
+     "isAllDay": false,
+     "isCancelled": false,
+     "organizer": {
+      "emailAddress": {
+       "name": "Carla Mendes",
+       "address": "carla.mendes@contoso.com"
+      }
+     },
+     "attendees": [],
+     "webLink": "https://outlook.office.com/calendar/1"
+    },
+    {
+     "id": "evt-2",
+     "subject": "Architecture review",
+     "start": {
+      "dateTime": "2026-09-15T11:00:00",
+      "timeZone": "UTC"
+     },
+     "end": {
+      "dateTime": "2026-09-15T12:00:00",
+      "timeZone": "UTC"
+     },
+     "location": {
+      "displayName": "Room 2B"
+     },
+     "isAllDay": false,
+     "isCancelled": false,
+     "organizer": {
+      "emailAddress": {
+       "name": "Carla Mendes",
+       "address": "carla.mendes@contoso.com"
+      }
+     },
+     "attendees": [],
+     "webLink": "https://outlook.office.com/calendar/2"
+    },
+    {
+     "id": "evt-3",
+     "subject": "All hands",
+     "start": {
+      "dateTime": "2026-09-15T12:00:00",
+      "timeZone": "UTC"
+     },
+     "end": {
+      "dateTime": "2026-09-15T13:00:00",
+      "timeZone": "UTC"
+     },
+     "location": {
+      "displayName": "Auditorium"
+     },
+     "isAllDay": false,
+     "isCancelled": false,
+     "organizer": {
+      "emailAddress": {
+       "name": "Carla Mendes",
+       "address": "carla.mendes@contoso.com"
+      }
+     },
+     "attendees": [],
+     "webLink": "https://outlook.office.com/calendar/3"
+    }
+   ]
+  },
+  "GET /me/manager": {
+   "id": "user-3",
+   "displayName": "Carla Mendes",
+   "userPrincipalName": "carla.mendes@contoso.com",
+   "jobTitle": "Engineering Manager",
+   "department": "Engineering"
+  },
+  "GET /me/directReports": {
+   "value": [
+    {
+     "id": "user-1",
+     "displayName": "Anna Nielsen",
+     "userPrincipalName": "anna.nielsen@contoso.com",
+     "mail": "anna.nielsen@contoso.com",
+     "department": "Finance",
+     "jobTitle": "Financial Controller",
+     "accountEnabled": true,
+     "officeLocation": "Floor 1"
+    },
+    {
+     "id": "user-2",
+     "displayName": "Bjorn Larsen",
+     "userPrincipalName": "bjorn.larsen@contoso.com",
+     "mail": "bjorn.larsen@contoso.com",
+     "department": "Engineering",
+     "jobTitle": "Staff Engineer",
+     "accountEnabled": true,
+     "officeLocation": "Floor 2"
+    }
+   ]
+  },
+  "GET /users": {
+   "value": [
+    {
+     "id": "user-1",
+     "displayName": "Anna Nielsen",
+     "userPrincipalName": "anna.nielsen@contoso.com",
+     "mail": "anna.nielsen@contoso.com",
+     "department": "Finance",
+     "jobTitle": "Financial Controller",
+     "accountEnabled": true,
+     "officeLocation": "Floor 1"
+    },
+    {
+     "id": "user-2",
+     "displayName": "Bjorn Larsen",
+     "userPrincipalName": "bjorn.larsen@contoso.com",
+     "mail": "bjorn.larsen@contoso.com",
+     "department": "Engineering",
+     "jobTitle": "Staff Engineer",
+     "accountEnabled": true,
+     "officeLocation": "Floor 2"
+    },
+    {
+     "id": "user-3",
+     "displayName": "Carla Mendes",
+     "userPrincipalName": "carla.mendes@contoso.com",
+     "mail": "carla.mendes@contoso.com",
+     "department": "Engineering",
+     "jobTitle": "Engineering Manager",
+     "accountEnabled": true,
+     "officeLocation": "Floor 3"
+    },
+    {
+     "id": "user-4",
+     "displayName": "Dmitri Volkov",
+     "userPrincipalName": "dmitri.volkov@contoso.com",
+     "mail": "dmitri.volkov@contoso.com",
+     "department": "Sales",
+     "jobTitle": "Account Executive",
+     "accountEnabled": true,
+     "officeLocation": "Floor 4"
+    },
+    {
+     "id": "user-5",
+     "displayName": "Elena Rossi",
+     "userPrincipalName": "elena.rossi@contoso.com",
+     "mail": "elena.rossi@contoso.com",
+     "department": "Finance",
+     "jobTitle": "Analyst",
+     "accountEnabled": true,
+     "officeLocation": "Floor 5"
+    }
+   ]
+  },
+  "GET /me/mailFolders": {
+   "value": [
+    {
+     "id": "inbox",
+     "displayName": "Inbox",
+     "totalItemCount": 12,
+     "unreadItemCount": 8
+    },
+    {
+     "id": "drafts",
+     "displayName": "Drafts",
+     "totalItemCount": 2,
+     "unreadItemCount": 0
+    },
+    {
+     "id": "sentitems",
+     "displayName": "Sent Items",
+     "totalItemCount": 41,
+     "unreadItemCount": 0
+    }
+   ]
+  },
+  "GET /me/presence": {
+   "id": "user-me",
+   "availability": "Available",
+   "activity": "Available"
+  },
+  "GET /groups": {
+   "value": [
+    {
+     "id": "grp-1",
+     "displayName": "Engineering All",
+     "mail": "eng@contoso.com",
+     "visibility": "Private"
+    },
+    {
+     "id": "grp-2",
+     "displayName": "Finance",
+     "mail": "finance@contoso.com",
+     "visibility": "Private"
+    }
+   ]
+  },
+  "GET /me/memberOf": {
+   "value": [
+    {
+     "id": "grp-1",
+     "displayName": "Engineering All"
+    }
+   ]
+  },
+  "GET /subscribedSkus": {
+   "value": [
+    {
+     "id": "sku-1",
+     "skuPartNumber": "ENTERPRISEPACK",
+     "consumedUnits": 412,
+     "prepaidUnits": {
+      "enabled": 500,
+      "suspended": 0,
+      "warning": 0
+     }
+    }
+   ]
+  },
+  "GET /me/licenseDetails": {
+   "value": [
+    {
+     "id": "lic-1",
+     "skuPartNumber": "ENTERPRISEPACK",
+     "servicePlans": []
+    }
+   ]
+  }
+ }
+}

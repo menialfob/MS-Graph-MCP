@@ -1,0 +1,89 @@
+{"query": "my profile", "target": "GET /me", "category": "Getting Started", "source": "graph-explorer-samples"}
+{"query": "my mail", "target": "GET /me/messages", "category": "Getting Started", "source": "graph-explorer-samples"}
+{"query": "my manager", "target": "GET /me/manager", "category": "Getting Started", "source": "graph-explorer-samples"}
+{"query": "my To Do task lists", "target": "GET /me/todo/lists", "category": "Getting Started", "source": "graph-explorer-samples"}
+{"query": "my direct reports", "target": "GET /me/directReports", "category": "Users", "source": "graph-explorer-samples"}
+{"query": "all users in the organization", "target": "GET /users", "category": "Users", "source": "graph-explorer-samples"}
+{"query": "all guest users in the organization", "target": "GET /users", "category": "Users", "source": "graph-explorer-samples"}
+{"query": "all users in the Finance department sorted by name with count", "target": "GET /users", "category": "Users", "source": "graph-explorer-samples"}
+{"query": "users with displayName containing \"room\", mail ending with \"microsoft.com\", and sorted by name", "target": "GET /users", "category": "Users", "source": "graph-explorer-samples"}
+{"query": "me", "target": "GET /me", "category": "Users", "source": "graph-explorer-samples"}
+{"query": "me", "target": "PATCH /me", "category": "Users", "source": "graph-explorer-samples"}
+{"query": "my skills", "target": "GET /me", "category": "Users", "source": "graph-explorer-samples"}
+{"query": "user by email", "target": "GET /users/{user-id}", "category": "Users", "source": "graph-explorer-samples"}
+{"query": "list all groups in my organization", "target": "GET /groups", "category": "Groups", "source": "graph-explorer-samples"}
+{"query": "get properties and relationships of group", "target": "GET /groups/{group-id}", "category": "Groups", "source": "graph-explorer-samples"}
+{"query": "direct members of a group with count", "target": "GET /groups/{group-id}/members", "category": "Groups", "source": "graph-explorer-samples"}
+{"query": "group's conversations", "target": "GET /groups/{group-id}/conversations", "category": "Groups", "source": "graph-explorer-samples"}
+{"query": "group's events", "target": "GET /groups/{group-id}/events", "category": "Groups", "source": "graph-explorer-samples"}
+{"query": "my high important mail", "target": "GET /me/messages", "category": "Outlook Mail", "source": "graph-explorer-samples"}
+{"query": "my mails from an address", "target": "GET /me/messages", "category": "Outlook Mail", "source": "graph-explorer-samples"}
+{"query": "my mail that has 'Hello World'", "target": "GET /me/messages", "category": "Outlook Mail", "source": "graph-explorer-samples"}
+{"query": "send an email", "target": "POST /me/sendMail", "category": "Outlook Mail", "source": "graph-explorer-samples"}
+{"query": "forward mail", "target": "POST /me/messages/{message-id}/forward", "category": "Outlook Mail", "source": "graph-explorer-samples"}
+{"query": "my events for the next week", "target": "GET /me/calendarView", "category": "Outlook Calendar", "source": "graph-explorer-samples"}
+{"query": "all events in my calendar", "target": "GET /me/events", "category": "Outlook Calendar", "source": "graph-explorer-samples"}
+{"query": "all my calendars", "target": "GET /me/calendars", "category": "Outlook Calendar", "source": "graph-explorer-samples"}
+{"query": "find meeting time", "target": "POST /me/findMeetingTimes", "category": "Outlook Calendar", "source": "graph-explorer-samples"}
+{"query": "schedule a meeting", "target": "POST /me/events", "category": "Outlook Calendar", "source": "graph-explorer-samples"}
+{"query": "add graph community call", "target": "POST /me/events", "category": "Outlook Calendar", "source": "graph-explorer-samples"}
+{"query": "track changes on my events for the next week", "target": "GET /me/calendarView/delta()", "category": "Outlook Calendar", "source": "graph-explorer-samples"}
+{"query": "my contacts", "target": "GET /me/contacts", "category": "Personal Contacts", "source": "graph-explorer-samples"}
+{"query": "add contact", "target": "POST /me/contacts", "category": "Personal Contacts", "source": "graph-explorer-samples"}
+{"query": "get Planner plan", "target": "GET /planner/plans/{plannerPlan-id}", "category": "Planner", "source": "graph-explorer-samples"}
+{"query": "update a Planner plan", "target": "PATCH /planner/plans/{plannerPlan-id}", "category": "Planner", "source": "graph-explorer-samples"}
+{"query": "all buckets in Planner plan", "target": "GET /planner/plans/{plannerPlan-id}/buckets", "category": "Planner", "source": "graph-explorer-samples"}
+{"query": "create a bucket in Planner plan", "target": "POST /planner/buckets", "category": "Planner", "source": "graph-explorer-samples"}
+{"query": "update a bucket in Planner plan", "target": "PATCH /planner/buckets/{plannerBucket-id}", "category": "Planner", "source": "graph-explorer-samples"}
+{"query": "all Planner tasks for a plan", "target": "GET /planner/plans/{plannerPlan-id}/tasks", "category": "Planner", "source": "graph-explorer-samples"}
+{"query": "all my Planner tasks", "target": "GET /me/planner/tasks", "category": "Planner", "source": "graph-explorer-samples"}
+{"query": "get Planner task by id", "target": "GET /planner/tasks/{plannerTask-id}", "category": "Planner", "source": "graph-explorer-samples"}
+{"query": "create a Planner task", "target": "POST /planner/tasks", "category": "Planner", "source": "graph-explorer-samples"}
+{"query": "update a Planner task", "target": "PATCH /planner/tasks/{plannerTask-id}", "category": "Planner", "source": "graph-explorer-samples"}
+{"query": "details for Planner task", "target": "GET /planner/tasks/{plannerTask-id}/details", "category": "Planner", "source": "graph-explorer-samples"}
+{"query": "items trending around me", "target": "GET /me/insights/trending", "category": "Insights", "source": "graph-explorer-samples"}
+{"query": "items shared with me", "target": "GET /me/insights/shared", "category": "Insights", "source": "graph-explorer-samples"}
+{"query": "people I work with", "target": "GET /me/people", "category": "People", "source": "graph-explorer-samples"}
+{"query": "people whose name starts with J", "target": "GET /me/people", "category": "People", "source": "graph-explorer-samples"}
+{"query": "get an open extension", "target": "GET /me", "category": "Extensions", "source": "graph-explorer-samples"}
+{"query": "create an open extension", "target": "POST /me/extensions", "category": "Extensions", "source": "graph-explorer-samples"}
+{"query": "update an open extension", "target": "PATCH /me/extensions/{extension-id}", "category": "Extensions", "source": "graph-explorer-samples"}
+{"query": "filter groups by extension property value", "target": "GET /groups", "category": "Extensions", "source": "graph-explorer-samples"}
+{"query": "my notebooks", "target": "GET /me/onenote/notebooks", "category": "OneNote", "source": "graph-explorer-samples"}
+{"query": "my sections", "target": "GET /me/onenote/sections", "category": "OneNote", "source": "graph-explorer-samples"}
+{"query": "my pages", "target": "GET /me/onenote/pages", "category": "OneNote", "source": "graph-explorer-samples"}
+{"query": "create notebook", "target": "POST /me/onenote/notebooks", "category": "OneNote", "source": "graph-explorer-samples"}
+{"query": "create section", "target": "POST /me/onenote/notebooks/{notebook-id}/sections", "category": "OneNote", "source": "graph-explorer-samples"}
+{"query": "create page", "target": "POST /me/onenote/sections/{onenoteSection-id}/pages", "category": "OneNote", "source": "graph-explorer-samples"}
+{"query": "search for a SharePoint site by keyword", "target": "GET /sites", "category": "SharePoint Sites", "source": "graph-explorer-samples"}
+{"query": "create team", "target": "POST /teams", "category": "Microsoft Teams", "source": "graph-explorer-samples"}
+{"query": "my joined teams", "target": "GET /me/joinedTeams", "category": "Microsoft Teams", "source": "graph-explorer-samples"}
+{"query": "members of a team", "target": "GET /teams/{team-id}/members", "category": "Microsoft Teams", "source": "graph-explorer-samples"}
+{"query": "channels of a team which I am member of", "target": "GET /teams/{team-id}/channels", "category": "Microsoft Teams", "source": "graph-explorer-samples"}
+{"query": "channel info", "target": "GET /teams/{team-id}/channels/{channel-id}", "category": "Microsoft Teams", "source": "graph-explorer-samples"}
+{"query": "create channel", "target": "POST /teams/{team-id}/channels", "category": "Microsoft Teams", "source": "graph-explorer-samples"}
+{"query": "tabs in a channel", "target": "GET /teams/{team-id}/channels/{channel-id}/tabs", "category": "Microsoft Teams", "source": "graph-explorer-samples"}
+{"query": "create chat", "target": "POST /chats", "category": "Microsoft Teams", "source": "graph-explorer-samples"}
+{"query": "send channel message", "target": "POST /teams/{team-id}/channels/{channel-id}/messages", "category": "Microsoft Teams", "source": "graph-explorer-samples"}
+{"query": "get recent user activities", "target": "GET /me/activities/recent()", "category": "User Activities", "source": "graph-explorer-samples"}
+{"query": "search messages", "target": "POST /search/query", "category": "Search", "source": "graph-explorer-samples"}
+{"query": "search events", "target": "POST /search/query", "category": "Search", "source": "graph-explorer-samples"}
+{"query": "search driveitems", "target": "POST /search/query", "category": "Search", "source": "graph-explorer-samples"}
+{"query": "search people", "target": "POST /search/query", "category": "Search", "source": "graph-explorer-samples"}
+{"query": "search lists", "target": "POST /search/query", "category": "Search", "source": "graph-explorer-samples"}
+{"query": "search listItems", "target": "POST /search/query", "category": "Search", "source": "graph-explorer-samples"}
+{"query": "search sites", "target": "POST /search/query", "category": "Search", "source": "graph-explorer-samples"}
+{"query": "search external items", "target": "POST /search/query", "category": "Search", "source": "graph-explorer-samples"}
+{"query": "page search results", "target": "POST /search/query", "category": "Search", "source": "graph-explorer-samples"}
+{"query": "sort search results", "target": "POST /search/query", "category": "Search", "source": "graph-explorer-samples"}
+{"query": "refine results with string aggregations", "target": "POST /search/query", "category": "Search", "source": "graph-explorer-samples"}
+{"query": "refine results with numeric aggregations", "target": "POST /search/query", "category": "Search", "source": "graph-explorer-samples"}
+{"query": "apply refined query passing the aggregationToken", "target": "POST /search/query", "category": "Search", "source": "graph-explorer-samples"}
+{"query": "request spelling correction", "target": "POST /search/query", "category": "Search", "source": "graph-explorer-samples"}
+{"query": "request result template", "target": "POST /search/query", "category": "Search", "source": "graph-explorer-samples"}
+{"query": "get To Do task lists", "target": "GET /me/todo/lists", "category": "Microsoft To Do", "source": "graph-explorer-samples"}
+{"query": "create To Do task list", "target": "POST /me/todo/lists", "category": "Microsoft To Do", "source": "graph-explorer-samples"}
+{"query": "create To Do task", "target": "POST /me/todo/lists/{todoTaskList-id}/tasks", "category": "Microsoft To Do", "source": "graph-explorer-samples"}
+{"query": "create LinkedResource in a To Do task", "target": "POST /me/todo/lists/{todoTaskList-id}/tasks/{todoTask-id}/linkedResources", "category": "Microsoft To Do", "source": "graph-explorer-samples"}
+{"query": "list all pages in a site", "target": "GET /sites/{site-id}/pages", "category": "SharePoint Pages", "source": "graph-explorer-samples"}
+{"query": "get a SharePoint page", "target": "GET /sites/{site-id}/pages/{baseSitePage-id}", "category": "SharePoint Pages", "source": "graph-explorer-samples"}
