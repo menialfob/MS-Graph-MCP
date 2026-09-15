@@ -34,8 +34,18 @@ class LocalEmbedder:
         from sentence_transformers import SentenceTransformer
 
         self.name = f"local:{model_name}"
-        self._model = SentenceTransformer(model_name, device="cpu")
-        self.dim = self._model.get_sentence_embedding_dimension()
+        # A long-running server should not depend on the model hub being
+        # reachable. Once the model is cached, GRAPH_MCP_OFFLINE=1 keeps
+        # startup local and quiet.
+        offline = os.environ.get("GRAPH_MCP_OFFLINE", "").lower() in ("1", "true", "yes")
+        self._model = SentenceTransformer(
+            model_name, device="cpu", local_files_only=offline
+        )
+        # Renamed in sentence-transformers 5.x; support both.
+        getter = getattr(
+            self._model, "get_embedding_dimension", None
+        ) or self._model.get_sentence_embedding_dimension
+        self.dim = getter()
         # BGE models are trained with an asymmetric query prefix; skipping it
         # measurably degrades retrieval.
         self._query_prefix = (

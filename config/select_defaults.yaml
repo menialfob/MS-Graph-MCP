@@ -1,0 +1,26 @@
+# Default $select per entity type, applied when the caller specifies none.
+#
+# Graph returns every property by default. A user has 50+; a message carries
+# its full HTML body. These defaults keep a typical page in the low thousands
+# of tokens instead of the low hundreds of thousands. A caller who genuinely
+# wants everything passes an explicit $select.
+user: [id, displayName, userPrincipalName, mail, jobTitle, department, officeLocation, accountEnabled]
+message: [id, subject, from, toRecipients, receivedDateTime, isRead, hasAttachments, importance, webLink]
+event: [id, subject, start, end, location, organizer, attendees, isAllDay, isCancelled, webLink]
+driveItem: [id, name, size, lastModifiedDateTime, createdDateTime, webUrl, folder, file]
+group: [id, displayName, description, mail, groupTypes, visibility]
+team: [id, displayName, description, visibility]
+chat: [id, topic, chatType, lastUpdatedDateTime]
+chatMessage: [id, createdDateTime, from, importance, webUrl]
+contact: [id, displayName, emailAddresses, mobilePhone, companyName]
+todoTask: [id, title, status, importance, dueDateTime]
+plannerTask: [id, title, percentComplete, dueDateTime, assignments]
+mailFolder: [id, displayName, parentFolderId, totalItemCount, unreadItemCount]
+calendar: [id, name, color, isDefaultCalendar, canEdit]
+site: [id, displayName, name, webUrl, description]
+drive: [id, name, driveType, owner, quota]
+person: [id, displayName, scoredEmailAddresses, jobTitle, department]
+presence: [id, availability, activity]
+directoryObject: [id, displayName]
+subscribedSku: [id, skuPartNumber, consumedUnits, prepaidUnits]
+licenseDetails: [id, skuPartNumber, servicePlans]
