@@ -154,28 +154,21 @@ remediation differs, so confirm which one is meant.
 
 ## What implementing this would take
 
-Sketched, not built — each carries a real cost and none is free.
+Researched in detail in
+[SENSITIVITY-LABELS-BLOCKING.md](SENSITIVITY-LABELS-BLOCKING.md), which measures
+the three mechanisms Graph v1.0 actually offers — the Copilot Retrieval API's
+`InformationProtectionLabelId` filter, Purview's `processContent` policy engine,
+and direct label reads via `extractSensitivityLabels` /
+`computeRightsAndInheritance` — with their permissions, licensing and coverage
+gaps, plus what this repository would have to change to reach any of them.
 
-1. **Decide the enforcement point.** Filtering in `shaping.py` is the cheapest
-   place and the wrong one: the data has already crossed the wire into the
-   process. Refusing at `graph_get`, before the call, is the defensible
-   boundary.
-2. **Get the label into the response.** Add the label-bearing properties to
-   `config/select_defaults.yaml` per type, and for mail `$expand` the
-   `MSIP_Label_*` extended properties. Both cost tokens on every call.
-3. **Accept that `driveItem` cannot be done this way.** With no label property
-   in v1.0, files need the pruned-out `extractSensitivityLabels` action — one
-   extra POST per item, which does not survive a 200-item listing. Either
-   un-prune that action and accept the latency, or treat files as out of scope
-   and say so.
-4. **Fail closed.** An item whose label could not be determined must be treated
-   as labeled, or the control is theatre. This will withhold unlabeled content
-   and users will notice.
-5. **Do not rely on the catalog scope for it.** `docs/SCOPE.md` is explicit that
-   the profile is a usefulness decision, not a security boundary. A label
-   control asserted there would be the same mistake that document already warns
-   about.
+Two findings from that research are worth repeating here, because they correct
+assumptions this document originally left open:
 
-The honest alternative is to document the gap and rely on the delegated-auth
-boundary — which is the status quo, but currently undocumented, which is the
-part worth fixing either way.
+- **Copilot does not do this through a Graph API call.** It relies on the EXTRACT
+  usage right (encryption-backed labels only) and on a Purview DLP policy
+  targeting the Copilot policy location, enforced inside Microsoft's service.
+- **Every label-reading API in Graph v1.0 is a POST**, so none of them is
+  reachable through `graph_get`, and routing them through `graph_write` would
+  misclassify a read as a mutation. A label check needs its own internal call
+  path.

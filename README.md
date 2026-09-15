@@ -70,4 +70,6 @@ eval/         gold sets and the retrieval harness
   measurements behind it
 - [Scope and permissions](docs/SCOPE.md) — read before changing a scope profile
 - [Sensitivity labels](docs/SENSITIVITY-LABELS.md) — why Purview labels are
-  not enforced, and what enforcing them would cost
+  not enforced today, and
+  [how they could be](docs/SENSITIVITY-LABELS-BLOCKING.md) — the three
+  mechanisms Graph v1.0 offers, measured
