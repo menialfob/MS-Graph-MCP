@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import argparse
 import datetime as dt
+import os
 from pathlib import Path
 
 import numpy as np
@@ -104,8 +105,18 @@ def build(
                 owners.append(entry_id)
 
     vectors = None
-    embedder_name = "none(ablated)"
-    if "dense" not in ablate:
+    if "dense" in ablate:
+        embedder_name = "none(ablated)"
+    elif (embedder_kind or os.environ.get("GRAPH_MCP_EMBEDDER", "local")) == "none":
+        # Lexical-only build. Not an ablation: it is the supported way to get a
+        # working index without installing sentence-transformers (and torch),
+        # which is most of the install and all of the build time. BM25 alone
+        # measures 75.8% recall@5 against the hybrid index's 85.5% (see
+        # docs/ARCHITECTURE.md), so it is a bootstrap and CI shape rather than
+        # the one to deploy.
+        embedder_name = "none"
+        print("skipping embeddings: lexical-only index (BM25)")
+    else:
         from graph_mcp.retrieval.embedders import get_embedder
 
         embedder = get_embedder(embedder_kind)
@@ -156,7 +167,11 @@ def main() -> None:
     # docs/ARCHITECTURE.md "What the ablations showed".
     ap.add_argument("--paraphraser", default="none",
                     choices=["none", "template", "llm"])
-    ap.add_argument("--embedder", default=None, help="local|azure (default: env or local)")
+    ap.add_argument(
+        "--embedder", default=None,
+        help="local|azure|none (default: env GRAPH_MCP_EMBEDDER, else local). "
+             "'none' builds a lexical-only index with no embedding model.",
+    )
     ap.add_argument("--ablate", default="", help=f"comma-separated: {','.join(ABLATIONS)}")
     ap.add_argument("--out", type=Path, required=True)
     args = ap.parse_args()

@@ -1,7 +1,10 @@
 # Running and porting the server
 
-The server is hosted remotely over Streamable HTTP and shared by many users,
-acting as an OAuth 2.1 resource server. That is the only way it runs.
+This document is the **shared host**: one process over Streamable HTTP serving
+many users, acting as an OAuth 2.1 resource server, each caller acting as
+themselves. For the single-operator server — one app registration, one
+identity, localhost — see [SINGLE-USER.md](SINGLE-USER.md); it is the shorter
+road to a running server and needs no verifier.
 
 ```bash
 python -m graph_mcp.http \
@@ -14,6 +17,12 @@ python -m graph_mcp.http \
 
 Without `--resource-url` it starts unauthenticated against the fixture tenant,
 which is useful for development and must never be exposed beyond localhost.
+
+The two modes are mutually exclusive and the entry point enforces it: with
+`AZURE_*` set *and* `--resource-url`, the server would authenticate each caller
+and then act as the one identity those credentials hold, so every user would
+read the operator's mail. It refuses to start, and the transport factory
+refuses any caller but the local one behind that.
 
 ## Tools
 
@@ -71,8 +80,11 @@ runtime = build_runtime(transport_factory=transport_factory)
 `Retry-After`, jittered backoff, JSON error handling. It has never run against
 a real tenant, so treat its error paths as unverified.
 
-Populate `identity()["scopes"]` from the token's `scp` claim — it drives
-`caller_has_scope` in search results and the missing-scope guidance on a 403.
+Pass a `scopes_provider` so `identity()["scopes"]` reports the token's `scp`
+claim — it drives `caller_has_scope` in search results and the missing-scope
+guidance on a 403, both of which otherwise read "unknown".
+`graph_mcp.azure.build_transport_factory` is a worked example of the whole
+factory, for the single-identity case.
 
 ## Authentication
 
@@ -183,8 +195,12 @@ container.
 | `GRAPH_MCP_INDEX` | Retrieval index directory |
 | `GRAPH_MCP_CONFIG` | Scope profiles, select defaults, write allowlist |
 | `GRAPH_MCP_METADATA` | CSDL for `graph_describe_type` |
-| `GRAPH_MCP_EMBEDDER` | `local` or `azure` |
+| `GRAPH_MCP_EMBEDDER` | `local`, `azure`, or `none` for a lexical-only build |
 | `GRAPH_MCP_OFFLINE` | Load the embedding model from cache only |
+| `GRAPH_MCP_GRAPH` | `auto`, `azure` or `fixture` — what to talk to |
+
+Single-operator mode adds `AZURE_*` and a few more; they are tabulated in
+[SINGLE-USER.md](SINGLE-USER.md#configuration).
 
 ## Behaviour worth knowing
 
@@ -245,7 +261,9 @@ negotiated with the client.
 
 `tests/test_server.py` drives the server through a real `ClientSession` over
 in-memory streams, so initialize, tool listing, schema validation and `isError`
-semantics are covered. `tests/test_multiuser.py` covers isolation.
+semantics are covered. `tests/test_multiuser.py` covers isolation, and
+`tests/test_azure.py` covers the sign-in flows against a stubbed token endpoint
+— including the failure messages, which is most of what that module is for.
 
 ```bash
 python -m pytest tests/ -q

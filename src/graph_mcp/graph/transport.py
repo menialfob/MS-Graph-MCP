@@ -174,7 +174,17 @@ class HttpGraphTransport:
     Deliberately does not acquire tokens. ``token_provider`` is an async
     callable returning a bearer token for the signed-in user; wiring it to MSAL,
     an on-behalf-of exchange, or a gateway is the integration point for each
-    deployment. The server never handles credentials itself.
+    deployment. The server never handles credentials itself. ``graph_mcp.azure``
+    is one such wiring, for a single-operator deployment.
+
+    ``scopes_provider`` reports what the token actually grants. It is optional
+    but worth supplying: it drives ``caller_has_scope`` in search results and
+    the missing-scope guidance on a 403, both of which otherwise read "unknown".
+
+    ``app_only`` and ``act_as_user`` exist for a token with no signed-in user.
+    Graph rejects every ``/me`` path under such a token, and the catalog is full
+    of them, so ``act_as_user`` names the user those paths resolve to and
+    ``app_only`` makes the failure legible when nothing does.
     """
 
     def __init__(
@@ -185,28 +195,85 @@ class HttpGraphTransport:
         max_retries: int = 3,
         timeout: float = 30.0,
         user_agent: str = "graph-mcp/0.1",
+        scopes_provider: Callable[[], Awaitable[list[str]]] | None = None,
+        act_as_user: str | None = None,
+        app_only: bool = False,
+        identity_hint: dict[str, Any] | None = None,
     ):
         self.token_provider = token_provider
         self.base_url = base_url
         self.max_retries = max_retries
         self.timeout = timeout
         self.user_agent = user_agent
+        self.scopes_provider = scopes_provider
+        self.act_as_user = act_as_user
+        self.app_only = app_only
+        self.identity_hint = identity_hint or {}
 
     async def identity(self) -> dict[str, Any]:
+        scopes = list(await self.scopes_provider()) if self.scopes_provider else []
+        identity = {
+            "id": self.identity_hint.get("id", ""),
+            "display_name": self.identity_hint.get("display_name", ""),
+            "user_principal_name": self.identity_hint.get("user_principal_name", ""),
+            "scopes": scopes,
+        }
+        if self.app_only and not self.act_as_user:
+            # There is no user to ask about. Whatever the token's own claims
+            # said about the application is the whole of the answer.
+            return identity
+
         response = await self.send(GraphRequest("GET", "/me"))
         if not response.ok:
-            return {}
+            return identity
         return {
-            "id": response.body.get("id", ""),
-            "display_name": response.body.get("displayName", ""),
-            "user_principal_name": response.body.get("userPrincipalName", ""),
+            "id": response.body.get("id", "") or identity["id"],
+            "display_name": response.body.get("displayName", "") or identity["display_name"],
+            "user_principal_name": (
+                response.body.get("userPrincipalName", "")
+                or identity["user_principal_name"]
+            ),
             # Scopes come from the token's scp claim, which the token provider
             # is better placed to surface than a /me round-trip.
-            "scopes": [],
+            "scopes": scopes,
         }
+
+    def _resolve_user(self, request: GraphRequest) -> GraphRequest:
+        """Point ``/me`` at a real user when the token has no signed-in one.
+
+        The rewrite happens here, below route validation, so the catalog and the
+        policy layer keep reasoning about ``/me`` -- the path the model asked
+        for -- while the wire carries the path Graph will accept.
+
+        It rewrites the request in place rather than copying it, because the
+        caller renders that same object into the result's `request` field, and
+        that field is the audit record. Under an app-only token "/me" names
+        nobody; the record has to say whose mailbox was read.
+        """
+        if not self.act_as_user:
+            return request
+        if request.path != "/me" and not request.path.startswith("/me/"):
+            return request
+        request.path = f"/users/{self.act_as_user}{request.path[3:]}"
+        return request
 
     async def send(self, request: GraphRequest) -> GraphResponse:
         import httpx
+
+        request = self._resolve_user(request)
+        if self.app_only and (request.path == "/me" or request.path.startswith("/me/")):
+            # Graph's own answer here is a 400 whose message does not mention
+            # that the token is app-only, which sends a model round the same
+            # request again. Say what is wrong and what fixes it.
+            return GraphResponse(400, {"error": {
+                "code": "appOnlyTokenHasNoSignedInUser",
+                "message": (
+                    f"'{request.path}' needs a signed-in user, but this server "
+                    "holds an app-only token. Set GRAPH_MCP_ACT_AS_USER to the "
+                    "user these paths should resolve to, or run a delegated "
+                    "sign-in flow (GRAPH_MCP_AZURE_FLOW=device_code)."
+                ),
+            }})
 
         token = await self.token_provider()
         headers = {

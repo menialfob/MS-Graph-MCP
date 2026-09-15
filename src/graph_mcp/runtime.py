@@ -123,7 +123,10 @@ def build_runtime(
         raise SystemExit(
             f"No retrieval index at {index_dir}. Build one first:\n"
             f"  python -m pipeline.fetch --version v1.0\n"
-            f"  python -m pipeline.build_index --out {index_dir}"
+            f"  python -m pipeline.build_index --out {index_dir}\n"
+            "\nAdd --embedder none for a lexical-only index: seconds rather than "
+            "minutes and no sentence-transformers install, at a cost in recall.\n"
+            "scripts/bootstrap.sh does all of it."
         )
 
     routes = RouteTable(json.loads((index_dir / "routes.json").read_text(encoding="utf-8")))

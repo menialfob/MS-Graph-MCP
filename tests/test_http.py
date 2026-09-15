@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import pytest
 
-from graph_mcp.http import build_auth, build_transport_security
+from graph_mcp.http import build_auth, build_graph_backend, build_transport_security
 
 
 class TestTransportSecurity:
@@ -72,3 +72,95 @@ class _AcceptAll:
 
     async def verify_token(self, token: str):  # pragma: no cover - not called
         return None
+
+
+class TestGraphBackend:
+    """Which tenant the server talks to, and the combinations it refuses."""
+
+    @pytest.fixture(autouse=True)
+    def clean_env(self, monkeypatch, tmp_path):
+        for name in (
+            "AZURE_TENANT_ID", "AZURE_CLIENT_ID", "AZURE_CLIENT_SECRET",
+            "GRAPH_MCP_AZURE_FLOW", "GRAPH_MCP_ACT_AS_USER",
+            "GRAPH_MCP_ALLOW_REMOTE_BIND", "AZURE_AUTHORITY_HOST",
+        ):
+            monkeypatch.delenv(name, raising=False)
+        # Never touch the developer's real token cache from a test run.
+        monkeypatch.setenv("GRAPH_MCP_TOKEN_CACHE", str(tmp_path / "cache.json"))
+
+    def azure_env(self, monkeypatch, **extra):
+        monkeypatch.setenv("AZURE_TENANT_ID", "tenant-1")
+        monkeypatch.setenv("AZURE_CLIENT_ID", "client-1")
+        monkeypatch.setenv("AZURE_CLIENT_SECRET", "secret-1")
+        for key, value in extra.items():
+            monkeypatch.setenv(key, value)
+
+    def test_no_credentials_means_the_fixture_tenant(self):
+        credential, factory = build_graph_backend(
+            "auto", authenticated=False, host="127.0.0.1"
+        )
+        assert credential is None and factory is None
+
+    def test_credentials_are_picked_up_automatically(self, monkeypatch):
+        self.azure_env(monkeypatch)
+        credential, factory = build_graph_backend(
+            "auto", authenticated=False, host="127.0.0.1"
+        )
+        # Delegated by default: an app registration's scoped permissions only
+        # ever reach Graph through a signed-in user.
+        assert credential.flow == "device_code"
+        assert not credential.app_only
+        assert factory is not None
+
+    def test_fixtures_can_be_forced_over_real_credentials(self, monkeypatch):
+        self.azure_env(monkeypatch)
+        assert build_graph_backend("fixture", authenticated=False, host="127.0.0.1") == (
+            None, None
+        )
+
+    def test_asking_for_azure_without_credentials_is_an_error(self):
+        with pytest.raises(SystemExit) as exc:
+            build_graph_backend("azure", authenticated=False, host="127.0.0.1")
+        assert "AZURE_TENANT_ID" in str(exc.value)
+
+    def test_partial_credentials_do_not_fall_back_to_fixtures(self, monkeypatch):
+        monkeypatch.setenv("AZURE_TENANT_ID", "tenant-1")
+        with pytest.raises(SystemExit) as exc:
+            build_graph_backend("auto", authenticated=False, host="127.0.0.1")
+        assert "AZURE_CLIENT_ID" in str(exc.value)
+
+    def test_credentials_and_resource_server_mode_are_refused(self, monkeypatch):
+        # The server holds one identity. Authenticating each caller and then
+        # acting as that one identity would hand every user the operator's
+        # access to the tenant.
+        self.azure_env(monkeypatch)
+        with pytest.raises(SystemExit) as exc:
+            build_graph_backend("auto", authenticated=True, host="0.0.0.0")
+        assert "--resource-url" in str(exc.value)
+
+    def test_credentials_are_not_exposed_on_a_public_interface(self, monkeypatch):
+        self.azure_env(monkeypatch)
+        with pytest.raises(SystemExit) as exc:
+            build_graph_backend("auto", authenticated=False, host="0.0.0.0")
+        assert "127.0.0.1" in str(exc.value)
+
+    def test_a_public_bind_can_be_opted_into(self, monkeypatch):
+        # Something in front may be doing the authentication.
+        self.azure_env(monkeypatch, GRAPH_MCP_ALLOW_REMOTE_BIND="1")
+        credential, _ = build_graph_backend(
+            "auto", authenticated=False, host="0.0.0.0"
+        )
+        assert credential is not None
+
+    def test_app_only_is_available_but_never_the_default(self, monkeypatch):
+        self.azure_env(monkeypatch, GRAPH_MCP_AZURE_FLOW="client_credentials")
+        credential, _ = build_graph_backend(
+            "auto", authenticated=False, host="127.0.0.1"
+        )
+        assert credential.app_only
+
+    def test_an_unknown_flow_is_reported_not_raised_raw(self, monkeypatch):
+        self.azure_env(monkeypatch, GRAPH_MCP_AZURE_FLOW="magic")
+        with pytest.raises(SystemExit) as exc:
+            build_graph_backend("auto", authenticated=False, host="127.0.0.1")
+        assert "device_code" in str(exc.value)

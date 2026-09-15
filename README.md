@@ -8,8 +8,9 @@ many to present as MCP tools. So the architecture is *discover → inspect →
 execute*: a small fixed tool surface, with a retrieval index doing the action
 identification.
 
-Hosted remotely over Streamable HTTP as an OAuth 2.1 resource server, shared by
-many users, each acting as themselves.
+Served over Streamable HTTP, either as a shared OAuth 2.1 resource server with
+every user acting as themselves, or as a single-operator server on localhost
+holding one Entra credential.
 
 ## Results
 
@@ -26,32 +27,42 @@ interesting part — one of them refuted a design assumption.
 ## Quick start
 
 ```bash
-python -m venv .venv && .venv/bin/pip install -e ".[local-embeddings,dev]"
+# venv, ~65 MB of upstream sources, and the index
+scripts/bootstrap.sh          # --full for the hybrid index the numbers above refer to
 
-# ~65 MB of upstream sources into .cache/
-python -m pipeline.fetch --version v1.0
+# the fixture tenant — no credentials, nothing real is reachable
+.venv/bin/python -m graph_mcp.http --port 8000
 
-# build the index (~1 min on CPU)
-python -m pipeline.build_index --profile end_user_helpdesk --out artifacts/index-v1.0
+# or your own tenant: signs you in once, then caches the refresh token
+export AZURE_TENANT_ID=... AZURE_CLIENT_ID=... AZURE_CLIENT_SECRET=...
+.venv/bin/python -m graph_mcp.http --port 8000
 
-# run the server against the fixture tenant — no credentials needed
-GRAPH_MCP_OFFLINE=1 PYTHONPATH=src python -m graph_mcp.http --port 8000
+# either way, point a client at it
+claude mcp add --transport http graph http://127.0.0.1:8000/mcp
+```
 
+Those three `AZURE_` variables do not by themselves say *who the server acts
+as*, and the difference decides whether anything works at all —
+[SINGLE-USER.md](docs/SINGLE-USER.md) is short and worth reading first.
+
+```bash
 # retrieval on its own
-python -m pipeline.query "who reports to my manager"
+.venv/bin/python -m pipeline.query "who reports to my manager"
 
 # measure it
-python -m eval.build_gold && python eval/run_retrieval_eval.py
+.venv/bin/python -m eval.build_gold && .venv/bin/python eval/run_retrieval_eval.py
 ```
 
 ## Layout
 
 ```
 pipeline/     corpus build: fetch, parse, join, curate, alias, index
+scripts/      bootstrap.sh: clone to running server in one command
 src/graph_mcp/
   http.py     entry point: Streamable HTTP, OAuth, transport security
   server.py   the seven tools
   caller.py   per-request identity; nothing about a user is cached
+  azure.py    Entra sign-in from AZURE_* for a single-operator server
   runtime.py  shared read-only state + a per-caller transport factory
   graph/      transport seam, OData, paging, shaping, error translation
   retrieval/  BM25, embedders, hybrid index
@@ -65,6 +76,8 @@ eval/         gold sets and the retrieval harness
 
 ## Documentation
 
+- [Running it against your own tenant](docs/SINGLE-USER.md) — **start here to
+  use it**: the app registration, the three sign-in flows, connecting a client
 - [Deployment](docs/DEPLOYMENT.md) — **start here to port it**: tools, auth,
   the transport seam, isolation, scaling
 - [Architecture](docs/ARCHITECTURE.md) — why the design is what it is, and the

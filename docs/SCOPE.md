@@ -35,6 +35,12 @@ That is why the design uses delegated / on-behalf-of auth, not app-only
 credentials. App-only plus an LLM is tenant-wide god-mode and discards the one
 property that makes the system safe to deploy.
 
+`GRAPH_MCP_AZURE_FLOW=client_credentials` will nonetheless run app-only, for
+registrations that genuinely hold application permissions. It is never the
+default, it logs a warning every start, and it needs `GRAPH_MCP_ACT_AS_USER` to
+resolve `/me` at all. Nothing above changes when you use it: layer 3 is gone,
+and layers 1 and 2 were never security controls.
+
 ### What none of the three layers covers: data classification
 
 All three layers gate **operations** — a method and a path. None of them looks

@@ -188,6 +188,21 @@ signal (+4.4 points) because we did not write them; the hand-written set's
 +22.8 should be treated as optimistic. Re-measure against real user queries
 before trusting the combined figure.
 
+### What the dense half is worth
+
+Retrieval fuses BM25 and embeddings with RRF, so an index can be built without
+the dense half at all (`--embedder none`) -- no sentence-transformers, no
+torch, seconds instead of a minute. It costs most of a round of enrichment:
+
+| index | recall@1 | recall@3 | recall@5 | MRR |
+|---|---|---|---|---|
+| lexical only (BM25) | 48.4% | 65.3% | 75.8% | 0.591 |
+| **hybrid (BM25 + dense)** | — | — | **85.5%** | — |
+
+Combined gold set, 124 queries. Worth having as the bootstrap and CI shape --
+75.8% is usable and needs no model -- but the ~10 points are why
+`scripts/bootstrap.sh --full` exists and why the hybrid index is what to ship.
+
 The honest read: **recall@5 ≈ 83%** on independent queries. The next lever is
 LLM-generated utterances introducing genuinely new vocabulary — wired up in
 `pipeline/paraphrase.py` but unmeasured. Do not enable it on faith.
