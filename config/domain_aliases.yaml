@@ -1,0 +1,39 @@
+# Domain vocabulary for Microsoft 365 concepts.
+#
+# Why this exists: every retrieval miss measured on the gold set was a
+# vocabulary gap, not a ranking failure. People say "email", Graph says
+# "message". People say "meeting", Graph says "event". People say "am I
+# available", Graph says "presence". The docs are written in API vocabulary,
+# so indexing them alone cannot match the words users actually type.
+#
+# Keys match an operation's OData type leaf (microsoft.graph.message -> message)
+# or a path segment. Values are indexed as an extra text for that operation.
+#
+# Authored from Microsoft 365 domain knowledge, not by reading eval failures
+# one at a time -- but it was written after seeing that the failures clustered
+# into vocabulary categories, so treat the measured gain as an upper estimate
+# until it is re-checked against queries collected from real users.
+message: [email, emails, mail, inbox, correspondence]
+sendMail: [send an email, send mail, compose email, email someone, write an email]
+mailFolder: [mail folder, inbox folder, email folders, mailbox folders]
+event: [meeting, meetings, appointment, appointments, calendar entry, invite]
+calendarView: [meetings today, agenda, schedule for the day, what is on my calendar]
+calendar: [calendars, schedule, diary]
+presence: [availability, available, free or busy, online status, am i free]
+driveItem: [file, files, document, documents, folder, attachment, document library]
+drive: [onedrive, document library, file storage, my files]
+user: [person, people, colleague, colleagues, employee, staff, coworker, account]
+group: [team group, distribution list, security group, membership]
+chat: [conversation, direct message, dm, teams chat]
+chatMessage: [teams message, chat message, im]
+team: [teams, workspace]
+channel: [teams channel, channel conversation]
+contact: [address book, contact card]
+todoTask: [task, tasks, to do item, reminder]
+plannerTask: [planner task, assigned work, board task]
+site: [sharepoint site, intranet site, team site]
+licenseDetails: [licences, license assignment, what am i licensed for]
+subscribedSku: [available licences, licence pool, unused licenses, seats]
+directoryObject: [directory entry, membership]
+person: [colleague, coworker, people i work with]
+searchEntity: [search, find, look for, full text search]

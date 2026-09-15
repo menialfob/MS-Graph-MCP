@@ -1,0 +1,138 @@
+# Catalog scope: which Graph operations are indexed and suggested.
+#
+# THIS IS NOT A SECURITY BOUNDARY. It decides what the retrieval layer will
+# propose, which is a usefulness decision. What a caller may actually do is
+# bounded by the delegated scopes on the Entra app registration and by the
+# signed-in user's own privileges. See docs/SCOPE.md.
+name: end_user_helpdesk
+description: >
+  End-user self-service plus helpdesk read. Covers /me, people and group
+  lookups, mail, calendar, files, Teams and chat. Excludes tenant
+  administration, device management and governance surfaces.
+
+# Structural pruning, applied before include/exclude matching. This is what
+# collapses 17,777 operations down to a reviewable catalog: the description
+# enumerates every navigation-property expansion, so most operations are deep
+# generated variants of a few hundred real ones.
+prune:
+  # Depth limit on navigation hops. Anything needing 4+ ids in the path is a
+  # generated expansion, not something a person asks for.
+  max_path_params: 3
+  # $count and $ref siblings are folded into their parent operation's metadata
+  # rather than indexed as separate actions.
+  drop_suffixes:
+    - "/$count"
+    - "/$ref"
+    - "/$value"
+  # OData type-cast variants (/microsoft.graph.<type>) narrow a collection to a
+  # subtype. Real, but never how an end-user question is phrased.
+  drop_segments_containing:
+    - "microsoft.graph."
+
+include:
+  - /me/**
+  - /users
+  - /users/{}
+  - /users/{}/manager
+  - /users/{}/directReports
+  - /users/{}/memberOf
+  - /users/{}/photo
+  - /users/{}/photo/**
+  - /users/{}/presence
+  - /users/{}/messages/**
+  - /users/{}/mailFolders/**
+  - /users/{}/events/**
+  - /users/{}/calendar/**
+  - /users/{}/calendars/**
+  - /users/{}/calendarView/**
+  - /users/{}/contacts/**
+  - /users/{}/drive/**
+  - /users/{}/drives/**
+  - /users/{}/joinedTeams/**
+  - /users/{}/chats/**
+  - /users/{}/todo/**
+  - /users/{}/licenseDetails
+  - /users/{}/people/**
+  - /groups
+  - /groups/{}
+  - /groups/{}/members/**
+  - /groups/{}/owners/**
+  - /groups/{}/drive/**
+  - /groups/{}/calendar/**
+  - /groups/{}/events/**
+  - /groups/{}/conversations/**
+  - /groups/{}/photo/**
+  - /sites/**
+  - /drives/**
+  - /teams/**
+  - /chats/**
+  - /planner/**
+  - /search/**
+  - /directoryObjects/**
+  - /directoryRoles/**
+  - /organization/**
+  - /subscribedSkus
+  - /contacts/**
+  - /places/**
+  - /communications/presences/**
+  - /auditLogs/signIns
+
+exclude:
+  # Tenant administration and device management -- not end-user facing.
+  - /deviceManagement/**
+  - /deviceAppManagement/**
+  - /identityGovernance/**
+  - /identity/**
+  - /policies/**
+  - /admin/**
+  - /roleManagement/**
+  - /solutions/**
+  - /security/**
+  - /education/**
+  - /print/**
+  - /storage/**
+  - /informationProtection/**
+  - /tenantRelationships/**
+  - /contracts/**
+  - /copilot/**
+  - /external/**
+  - /reports/**
+  - /directory/**
+  - /servicePrincipals/**
+  - /applications/**
+  - /groupSettingTemplates/**
+  - /invitations/**
+  - /devices/**
+  # Deep Excel workbook manipulation: real, but a poor fit for natural-language
+  # retrieval and it floods the index with near-identical operations.
+  - "**/workbook/**"
+  # Change-notification plumbing, not a user-facing action.
+  - "**/subscriptions/**"
+  # Intune reaches /me via /me/managedDevices; the /deviceManagement exclusion
+  # above does not cover it.
+  - "**/managedDevices/**"
+  - "**/managedAppRegistrations/**"
+  # Teams app-catalog plumbing: real operations, but nobody asks for them in
+  # natural language and they dominate the Teams surface by volume.
+  - "**/installedApps/**"
+  - "**/permissionGrants/**"
+  - "**/hostedContents/**"
+  - "**/teamsAppDefinition/**"
+  - "**/teamsApp/**"
+  # /me/joinedTeams/{} re-exposes the entire /teams/{} surface under a second
+  # path. Keep the list itself; route the rest through /teams/{}.
+  - /me/joinedTeams/{}/**
+  - /users/{}/joinedTeams/{}/**
+
+# Paths where only GET is indexed, regardless of what the description offers.
+# Helpdesk can look people and groups up; it cannot edit them from here.
+read_only:
+  - /users/**
+  - /groups/**
+  - /organization/**
+  - /directoryObjects/**
+  - /directoryRoles/**
+  - /subscribedSkus
+  - /auditLogs/**
+  - /sites/**
+  - /places/**

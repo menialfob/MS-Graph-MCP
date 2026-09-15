@@ -1,0 +1,35 @@
+{"query": "who is my manager", "target": "GET /me/manager", "category": "People", "source": "internal"}
+{"query": "who reports to me", "target": "GET /me/directReports", "category": "People", "source": "internal"}
+{"query": "what teams am I in", "target": "GET /me/joinedTeams", "category": "Teams", "source": "internal"}
+{"query": "which groups do I belong to", "target": "GET /me/memberOf", "category": "Groups", "source": "internal"}
+{"query": "show my profile details", "target": "GET /me", "category": "Users", "source": "internal"}
+{"query": "what licenses do I have assigned", "target": "GET /me/licenseDetails", "category": "Licensing", "source": "internal"}
+{"query": "how many licenses are left in the tenant", "target": "GET /subscribedSkus", "category": "Licensing", "source": "internal"}
+{"query": "send an email to the team", "target": "POST /me/sendMail", "category": "Outlook Mail", "source": "internal"}
+{"query": "reply to that email", "target": "POST /me/messages/{message-id}/reply", "category": "Outlook Mail", "source": "internal"}
+{"query": "what folders are in my mailbox", "target": "GET /me/mailFolders", "category": "Outlook Mail", "source": "internal"}
+{"query": "read the messages in a specific mail folder", "target": "GET /me/mailFolders/{mailFolder-id}/messages", "category": "Outlook Mail", "source": "internal"}
+{"query": "what meetings do I have today", "target": "GET /me/calendarView", "category": "Outlook Calendar", "source": "internal"}
+{"query": "book a meeting on my calendar", "target": "POST /me/events", "category": "Outlook Calendar", "source": "internal"}
+{"query": "accept that meeting invitation", "target": "POST /me/events/{event-id}/accept", "category": "Outlook Calendar", "source": "internal"}
+{"query": "list my calendars", "target": "GET /me/calendars", "category": "Outlook Calendar", "source": "internal"}
+{"query": "look up a colleague by name", "target": "GET /users", "category": "Users", "source": "internal"}
+{"query": "get details for a specific user account", "target": "GET /users/{user-id}", "category": "Users", "source": "internal"}
+{"query": "who is in this group", "target": "GET /groups/{group-id}/members", "category": "Groups", "source": "internal"}
+{"query": "list the groups in the organisation", "target": "GET /groups", "category": "Groups", "source": "internal"}
+{"query": "search across files and messages for a keyword", "target": "POST /search/query", "category": "Search", "source": "internal"}
+{"query": "am I available right now", "target": "GET /me/presence", "category": "Teams", "source": "internal"}
+{"query": "show my recent chats in Teams", "target": "GET /me/chats", "category": "Teams", "source": "internal"}
+{"query": "post a message into a chat", "target": "POST /chats/{chat-id}/messages", "category": "Teams", "source": "internal"}
+{"query": "read the messages in a chat", "target": "GET /chats/{chat-id}/messages", "category": "Teams", "source": "internal"}
+{"query": "what are my to do lists", "target": "GET /me/todo/lists", "category": "To Do", "source": "internal"}
+{"query": "my assigned planner tasks", "target": "GET /me/planner/tasks", "category": "Planner", "source": "internal"}
+{"query": "show my contacts", "target": "GET /me/contacts", "category": "Contacts", "source": "internal"}
+{"query": "people I work with most", "target": "GET /me/people", "category": "People", "source": "internal"}
+{"query": "get my profile picture", "target": "GET /me/photo", "category": "Users", "source": "internal"}
+{"query": "what sharepoint sites are there", "target": "GET /sites", "category": "SharePoint", "source": "internal"}
+{"query": "sites I follow", "target": "GET /me/followedSites", "category": "SharePoint", "source": "internal"}
+{"query": "what is inside this folder in the document library", "target": "GET /drives/{drive-id}/items/{driveItem-id}/children", "category": "OneDrive", "source": "internal"}
+{"query": "details about my organisation tenant", "target": "GET /organization", "category": "Organization", "source": "internal"}
+{"query": "my outlook categories", "target": "GET /me/outlook/masterCategories", "category": "Outlook Mail", "source": "internal"}
+{"query": "information about my onedrive", "target": "GET /me/drive", "category": "OneDrive", "source": "internal"}
